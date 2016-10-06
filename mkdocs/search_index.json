@@ -1,0 +1,29 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "CribSense Overview\n\n\nGetting Started", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/#cribsense-overview", 
+            "text": "", 
+            "title": "CribSense Overview"
+        }, 
+        {
+            "location": "/#getting-started", 
+            "text": "", 
+            "title": "Getting Started"
+        }, 
+        {
+            "location": "/setup/setup/", 
+            "text": "Setup Guide\n\n\nTODO", 
+            "title": "Setup"
+        }, 
+        {
+            "location": "/setup/setup/#setup-guide", 
+            "text": "TODO", 
+            "title": "Setup Guide"
+        }
+    ]
+}
