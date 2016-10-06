@@ -1,20 +1,16 @@
-# Pyramids
+# CribSense: <small>a contactless, video-based baby monitor</small>
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://lukehsiao.github.io/CribSense/)
+[![Waffle.io](https://img.shields.io/waffle/label/evancohen/smart-mirror/in%20progress.svg?maxAge=2592000)](https://waffle.io/lukehsiao/CribSense/join)
+[![Build Status](https://img.shields.io/travis/lukehsiao/CribSense.svg)](https://travis-ci.com/lukehsiao/CribSense)
 
-Magnify motion in videos with Riesz pyramids.
+
+## Copyright & License
 
 Copyright 2012 Massachusetts Institute of Technology
 and Quanta Research Cambridge.  All Rights Reserved.
 
-This implementation is based on work by Neal Wadhwa and the
+This implementation is based on work by [tbl3rd](https://github.com/tbl3rd/Pyramids), Neal Wadhwa and the
 other authors below, and all rights are retained by them.
-
-Any bugs or mistakes are most likely mine though.
-
-This is an implementation of the methods described in the paper
-"Eulerian Video Magnification for Revealing Subtle Changes in the World"
-written by Hao-yu Wu, Michael Rubinstein, Eugene Shih, John Guttag,
-Fredo Durand, and William T. Freeman, and published in the
-"ACM Transactions for Graphics, Volume 31, Number 4, July 2012."
 
 This code embodies patented algorithms and is provided
 for non-commercial research purposes only.
