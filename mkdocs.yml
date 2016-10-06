@@ -1,0 +1,6 @@
+site_name: CribSense Documentation
+repo_url: https://github.com/lukehsiao/CribSense
+pages:
+- Home: 'index.md'
+- Setup: 'setup/setup.md'
+theme: readthedocs
