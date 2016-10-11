@@ -2,6 +2,7 @@
 #define MAIN_DIALOG_H_INCLUDED
 
 #include <QtGui>
+#include <QtWidgets>
 #include <opencv2/highgui/highgui.hpp>
 #include "CommandLine.hpp"
 #include "DisplayWidget.hpp"
