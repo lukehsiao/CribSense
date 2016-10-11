@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui widgets
 
 TARGET = Magnifier
 TEMPLATE = app
@@ -26,11 +26,10 @@ SOURCES += \
     main.cpp \
     #
 
-CV2_INCLUDE = /usr/local/include
-CV2_LIB = /usr/local/lib
-INCLUDEPATH += $$CV2_INCLUDE
-LIBS += -L$$CV2_LIB
-LIBS += -lopencv_highgui -lopencv_core -lopencv_imgproc
+CV2_INCLUDE = `pkg-config --cflags opencv`
+CV2_LIB = `pkg-config --libs opencv`
+CPPFLAGS += $$CV2_INCLUDE
+LIBS += $$CV2_LIB
 
 macx {
     # QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.6
