@@ -3,6 +3,8 @@
 [![Waffle.io](https://img.shields.io/badge/View%20issues%20on-waffle.io-brightgreen.svg)](https://waffle.io/lukehsiao/CribSense/join)
 [![Build Status](https://travis-ci.com/lukehsiao/CribSense.svg?token=T3shSHjcJk8kMbzHEY7Z&branch=master)](https://travis-ci.com/lukehsiao/CribSense)
 
+# Documentation
+Please view our [Documentation Pages](https://lukehsiao.github.io/CribSense) for details and instructions on how to build the project.
 
 ## Copyright & License
 
