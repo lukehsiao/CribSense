@@ -28,5 +28,9 @@
 *.out
 *.app
 
+Makefile
+Magnifier
+moc_*
+
 # Ignore MkDocs
 site/
