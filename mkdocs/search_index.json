@@ -1,29 +1,39 @@
 {
     "docs": [
         {
-            "location": "/", 
-            "text": "CribSense Overview\n\n\nGetting Started", 
+            "location": "/",
+            "text": "CribSense Overview\n\n\nCribSense is a C++ implementation of \nVideo Magnification\n tuned to run on a Raspberry Pi 3 Model B. [TODO: add more here later]\n\n\nGetting Started\n\n\nTo install the prerequisites and build the software, see the \nstep-by-step instructions",
             "title": "Home"
-        }, 
+        },
         {
-            "location": "/#cribsense-overview", 
-            "text": "", 
+            "location": "/#cribsense-overview",
+            "text": "CribSense is a C++ implementation of  Video Magnification  tuned to run on a Raspberry Pi 3 Model B. [TODO: add more here later]",
             "title": "CribSense Overview"
-        }, 
+        },
         {
-            "location": "/#getting-started", 
-            "text": "", 
+            "location": "/#getting-started",
+            "text": "To install the prerequisites and build the software, see the  step-by-step instructions",
             "title": "Getting Started"
-        }, 
+        },
         {
-            "location": "/setup/setup/", 
-            "text": "Setup Guide\n\n\nTODO", 
-            "title": "Setup"
-        }, 
+            "location": "/setup/setup/",
+            "text": "Setup Guide\n\n\nThis is the step-by-step guide on building the cribsense software on Ubuntu.\n\n\nPrerequisites\n\n\nThis software depends on Qt5 and OpenCV. Install these by running\n\n\nsudo apt-get install qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev\nsudo apt-get install qt5-default qttools5-dev-tools\n\n\n\n\nTo install \nOpenCV\n, run:\n\n\nsudo apt-get install build-essential\nsudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev\nsudo apt-get install libopencv-dev\n\n\n\n\nBuild\n\n\nTo build the software, navigate to the root of the directory and run\n\n\nqmake src/Magnifier.pro\nmake\n\n\n\n\nTo execute the program:\n\n\n./Magnifier",
+            "title": "Step-by-step Setup Instructions"
+        },
         {
-            "location": "/setup/setup/#setup-guide", 
-            "text": "TODO", 
+            "location": "/setup/setup/#setup-guide",
+            "text": "This is the step-by-step guide on building the cribsense software on Ubuntu.",
             "title": "Setup Guide"
+        },
+        {
+            "location": "/setup/setup/#prerequisites",
+            "text": "This software depends on Qt5 and OpenCV. Install these by running  sudo apt-get install qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev\nsudo apt-get install qt5-default qttools5-dev-tools  To install  OpenCV , run:  sudo apt-get install build-essential\nsudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev\nsudo apt-get install libopencv-dev",
+            "title": "Prerequisites"
+        },
+        {
+            "location": "/setup/setup/#build",
+            "text": "To build the software, navigate to the root of the directory and run  qmake src/Magnifier.pro\nmake  To execute the program:  ./Magnifier",
+            "title": "Build"
         }
     ]
 }

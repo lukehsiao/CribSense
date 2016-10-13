@@ -3,12 +3,9 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  
-  
-  <title>Setup - CribSense Documentation</title>
+  <title>Step-by-step Setup Instructions - CribSense Documentation</title>
   
 
   <link rel="shortcut icon" href="../../img/favicon.ico">
@@ -23,9 +20,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Setup";
-    var mkdocs_page_input_path = "setup/setup.md";
-    var mkdocs_page_url = "/setup/setup/";
+    var mkdocs_page_name = "Step-by-step Setup Instructions";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -63,11 +58,15 @@
           
             <li>
     <li class="toctree-l1 current">
-        <a class="current" href="./">Setup</a>
+        <a class="current" href="./">Step-by-step Setup Instructions</a>
         
             <ul>
             
                 <li class="toctree-l3"><a href="#setup-guide">Setup Guide</a></li>
+                
+                    <li><a class="toctree-l4" href="#prerequisites">Prerequisites</a></li>
+                
+                    <li><a class="toctree-l4" href="#build">Build</a></li>
                 
             
             </ul>
@@ -97,7 +96,7 @@
     
       
     
-    <li>Setup</li>
+    <li>Step-by-step Setup Instructions</li>
     <li class="wy-breadcrumbs-aside">
       
         
@@ -112,7 +111,28 @@
             <div class="section">
               
                 <h1 id="setup-guide">Setup Guide</h1>
-<p>TODO</p>
+<p>This is the step-by-step guide on building the cribsense software on Ubuntu.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>This software depends on Qt5 and OpenCV. Install these by running</p>
+<pre><code class="sh">sudo apt-get install qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev
+sudo apt-get install qt5-default qttools5-dev-tools
+</code></pre>
+
+<p>To install <a href="http://docs.opencv.org/2.4/doc/tutorials/introduction/linux_install/linux_install.html">OpenCV</a>, run:</p>
+<pre><code>sudo apt-get install build-essential
+sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+sudo apt-get install libopencv-dev
+</code></pre>
+
+<h2 id="build">Build</h2>
+<p>To build the software, navigate to the root of the directory and run</p>
+<pre><code class="sh">qmake src/Magnifier.pro
+make
+</code></pre>
+
+<p>To execute the program:</p>
+<pre><code>./Magnifier
+</code></pre>
               
             </div>
           </div>
@@ -146,7 +166,7 @@
 <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
-          <a href="https://github.com/lukehsiao/CribSense" class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
         <span><a href="../.." style="color: #fcfcfc;">&laquo; Previous</a></span>
