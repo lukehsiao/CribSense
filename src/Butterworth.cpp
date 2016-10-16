@@ -45,13 +45,11 @@ polynomialCoefficients(std::vector< std::complex<double> > roots)
     std::vector< std::complex<double> >::iterator pos_end;
     pos_end = std::remove_if(pos_roots.begin(), pos_roots.end(), hasNegImag);
     pos_roots.assign(pos_roots.begin(), pos_end);
-    std::sort(pos_roots.begin(), pos_roots.end(), sortComplex);
 
     std::vector< std::complex<double> > neg_roots = roots;
     std::vector< std::complex<double> >::iterator neg_end;
     neg_end = std::remove_if(neg_roots.begin(), neg_roots.end(), hasPosImag);
     neg_roots.assign(neg_roots.begin(), neg_end);
-    std::sort(neg_roots.begin(), neg_roots.end(), sortComplex);
 
     const bool same
         =  neg_roots.size() == pos_roots.size()
