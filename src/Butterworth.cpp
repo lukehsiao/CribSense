@@ -39,7 +39,7 @@ polynomialCoefficients(std::vector< std::complex<double> > roots)
         coeffs[0] *= w;
         ++sofar;
     }
-    std::vector< std::complex<double> > result = coeffs;
+    std::vector< std::complex<double> > result = std::move(coeffs);
 
     std::vector< std::complex<double> > pos_roots = roots;
     std::vector< std::complex<double> >::iterator pos_end;
@@ -57,8 +57,8 @@ polynomialCoefficients(std::vector< std::complex<double> > roots)
         =  neg_roots.size() == pos_roots.size()
         && std::equal(pos_roots.begin(), pos_roots.end(), neg_roots.begin());
     if (same) {
-        for (unsigned k = 0; k < coeffs.size(); ++k) {
-            result[k] = std::real(coeffs[k]);
+        for (unsigned k = 0; k < result.size(); ++k) {
+            result[k] = std::real(result[k]);
         }
     }
     return result;
