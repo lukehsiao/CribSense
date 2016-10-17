@@ -117,6 +117,9 @@ static unsigned choose(unsigned n, unsigned k)
     return result;
 }
 
+static inline int minus_one_to_the_k(unsigned k) {
+    return k % 2 ? -1 : 1;
+}
 
 // Use the bilinear transform to convert the analog filter coefficients in
 // a and b into a digital filter for the sampling frequency fs (1/T).
@@ -142,9 +145,8 @@ static void bilinearTransform(std::vector< std::complex<double> > &b,
                 for (unsigned l = 0; l < M - i + 1; ++l) {
                     M_minus_i_choose_l = l == 0 ? 1 : (M_minus_i_choose_l * (M-i - l + 1) / l);
                     if (k + l == j) {
-                        val += std::complex<double>(i_choose_k)
-                            *  std::complex<double>(M_minus_i_choose_l)
-                            *  b[N - i] * pow(2.0 * fs, i) * pow(-1.0, k);
+                        val += std::complex<double>(int(i_choose_k * M_minus_i_choose_l) * minus_one_to_the_k(k))
+                            *  b[N - i] * pow(2.0 * fs, i);
                     }
                 }
             }
@@ -163,9 +165,8 @@ static void bilinearTransform(std::vector< std::complex<double> > &b,
                 for (unsigned l = 0; l < M - i + 1; ++l) {
                     M_minus_i_choose_l = l == 0 ? 1 : (M_minus_i_choose_l * (M-i - l + 1) / l);
                     if (k + l == j) {
-                        val += std::complex<double>(i_choose_k)
-                            *  std::complex<double>(M_minus_i_choose_l)
-                            *  a[D - i] * pow(2.0 * fs, i) * pow(-1.0, k);
+                        val += std::complex<double>(int(i_choose_k * M_minus_i_choose_l) * minus_one_to_the_k(k))
+                            *  a[D - i] * pow(2.0 * fs, i);
                     }
                 }
             }
