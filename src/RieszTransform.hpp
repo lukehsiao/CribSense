@@ -2,6 +2,7 @@
 #define RIESZ_TRANSFORM_H_INCLUDED
 
 #include <opencv2/opencv.hpp>
+#include <memory>
 
 #include "Butterworth.hpp"
 #include "ComplexMat.hpp"
@@ -187,11 +188,22 @@ public:
         return 0;
     }
 
+    RieszPyramid()
+    {}
+
+    bool initialized() const {
+    	return itsLevel.size() > 0;
+    }
+
+    explicit operator bool() const {
+    	return initialized();
+    }
+
     // Initialize levels here because cannot do that through vector<>.
     //
-    RieszPyramid(const cv::Mat &frame)
-        : itsLevel(countLevels(frame.size()))
+    void initialize(const cv::Mat &frame)
     {
+        itsLevel.resize(countLevels(frame.size()));
         build(frame);
         const size_type count = itsLevel.size();
         for (size_type i = 0; i < count; ++i) {
@@ -333,12 +345,10 @@ class RieszTransform {
     double itsAlpha;
     double itsThreshold;
     RieszTemporalBandpass itsBand;
-    RieszPyramid *itsCurrent;
-    RieszPyramid *itsPrior;
+    RieszPyramid itsCurrent;
+    RieszPyramid itsPrior;
 
 public:
-
-    ~RieszTransform() { delete itsPrior; delete itsCurrent; }
 
     // Set the frames per second which is the filter sampling frequency.
     //
@@ -367,20 +377,20 @@ public:
         std::vector<cv::Mat> channels; cv::split(itsFrame, channels);
         cv::Mat result;
         if (itsCurrent) {
-            itsCurrent->build(channels[0]);
-            itsCurrent->unwrapOrientPhase(*itsPrior);
-            itsBand.filterPyramids(*itsCurrent, *itsPrior);
-            itsCurrent->amplify(itsAlpha, itsThreshold * PI_PERCENT);
-            channels[0] = itsCurrent->collapse();
+            itsCurrent.build(channels[0]);
+            itsCurrent.unwrapOrientPhase(itsPrior);
+            itsBand.filterPyramids(itsCurrent, itsPrior);
+            itsCurrent.amplify(itsAlpha, itsThreshold * PI_PERCENT);
+            channels[0] = itsCurrent.collapse();
             cv::merge(channels, result);
             cv::cvtColor(result, result, cv::COLOR_YCrCb2RGB);
             result.convertTo(result, CV_8UC3, 255);
         } else {
-            itsCurrent = new RieszPyramid(channels[0]);
-            itsPrior   = new RieszPyramid(channels[0]);
+            itsCurrent.initialize(channels[0]);
+            itsPrior.initialize(channels[0]);
             frame.copyTo(result);
         }
-        return result;
+        return std::move(result);
     }
 
     // Construct this transform with the same settings as that.
@@ -390,8 +400,6 @@ public:
         , itsAlpha(that.itsAlpha)
         , itsThreshold(that.itsThreshold)
         , itsBand(that.itsBand)
-        , itsCurrent(0)
-        , itsPrior(0)
     {
         this->fps(itsBand.itsFps);
     }
@@ -401,8 +409,6 @@ public:
         , itsAlpha(0.0)
         , itsThreshold(0.0)
         , itsBand()
-        , itsCurrent(0)
-        , itsPrior(0)
     {}
 };
 
