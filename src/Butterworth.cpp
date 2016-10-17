@@ -72,8 +72,8 @@ zerosPolesToTransferCoefficients(std::vector< std::complex<double> > zeros,
                                  std::vector< std::complex<double> > &a,
                                  std::vector< std::complex<double> > &b)
 {
-    a = polynomialCoefficients(poles);
-    b = polynomialCoefficients(zeros);
+    a = polynomialCoefficients(std::move(poles));
+    b = polynomialCoefficients(std::move(zeros));
     for (unsigned int k = 0; k < b.size(); ++k) b[k] *= gain;
 }
 
@@ -87,8 +87,16 @@ zerosPolesToTransferCoefficients(std::vector< std::complex<double> > zeros,
 static void normalize(std::vector< std::complex<double> > &b,
                       std::vector< std::complex<double> > &a)
 {
-    while (a.front() == 0.0 && a.size() > 1) a.erase(a.begin());
-    const std::complex<double> leading_coeff = a.front();
+    std::complex<double> leading_coeff;
+
+    unsigned k = 0;
+    while (a[k] == 0.0 && k < a.size())
+        k++;
+    if (k > 0)
+        a.erase(a.begin(), a.begin()+k);
+    leading_coeff = a.front();
+    if (leading_coeff == 0.0)
+        throw std::range_error("Polynomial is 0");
     for (unsigned int k = 0; k < a.size(); ++k) a[k] /= leading_coeff;
     for (unsigned int k = 0; k < b.size(); ++k) b[k] /= leading_coeff;
 }
