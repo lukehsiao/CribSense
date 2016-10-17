@@ -224,6 +224,7 @@ prototypeAnalogButterworth(unsigned N,
                            double &gain)
 {
     static const std::complex<double> j = std::complex<double>(0, 1.0);
+    poles.reserve(N);
     for (unsigned k = 1; k < N + 1; ++k) {
         poles.push_back(exp(j * (2.0 * k - 1) / (2.0 * N) * M_PI) * j);
     }
@@ -253,7 +254,9 @@ void butterworth(unsigned int N, double Wn,
     toLowpass(b, a, w0);
     bilinearTransform(b, a, fs);
     out_a.clear();
+    out_a.reserve(a.size());
     for (unsigned k = 0; k < a.size(); ++k) out_a.push_back(std::real(a[k]));
     out_b.clear();
+    out_b.reserve(b.size());
     for (unsigned k = 0; k < b.size(); ++k) out_b.push_back(std::real(b[k]));
 }
