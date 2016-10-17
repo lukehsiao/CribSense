@@ -20,7 +20,7 @@ class DisplayWidget : public QWidget {
 
     Q_OBJECT
 
-    std::unique_ptr<uchar[]> buffer;
+    cv::Mat buffer;
     QImage itsQimage;
 
 public:
@@ -36,13 +36,12 @@ public:
     {
         static const QImage::Format rgb888 = QImage::Format_RGB888;
         if (m.type() == CV_8UC3) {
-            // make a copy of the data
-            buffer = std::unique_ptr<uchar[]>(new uchar[m.rows * m.step]);
-            if (buffer == nullptr)
-                throw std::bad_alloc();
-            memcpy(buffer.get(), m.data, m.rows * m.step);
+            // take a reference to the data
+            // this copies the wrapper cv::Mat object but not the actual
+            // uchar* buffer
+            buffer = m;
             itsQimage
-                = QImage(buffer.get(), m.cols, m.rows, m.step, rgb888).rgbSwapped();
+                = QImage(buffer.data, buffer.cols, buffer.rows, buffer.step, rgb888).rgbSwapped();
         } else {
             qWarning() << "Image type" << m.type() << "is not" << CV_8UC3
                        << "(CV_8UC3) so it cannot be displayed.";
