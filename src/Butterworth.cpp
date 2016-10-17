@@ -135,11 +135,15 @@ static void bilinearTransform(std::vector< std::complex<double> > &b,
     for (unsigned j = 0; j < Np + 1; ++j) {
         std::complex<double> val = 0.0;
         for (unsigned i = 0; i < N + 1; ++i) {
+            unsigned i_choose_k;
             for (unsigned k = 0; k < i + 1; ++k) {
+                i_choose_k = k == 0 ? 1 : (i_choose_k * (i - k + 1) / k);
+                unsigned M_minus_i_choose_l; // choose(M - i, l)
                 for (unsigned l = 0; l < M - i + 1; ++l) {
+                    M_minus_i_choose_l = l == 0 ? 1 : (M_minus_i_choose_l * (M-i - l + 1) / l);
                     if (k + l == j) {
-                        val += std::complex<double>(choose(i, k))
-                            *  std::complex<double>(choose(M - i, l))
+                        val += std::complex<double>(i_choose_k)
+                            *  std::complex<double>(M_minus_i_choose_l)
                             *  b[N - i] * pow(2.0 * fs, i) * pow(-1.0, k);
                     }
                 }
@@ -152,11 +156,15 @@ static void bilinearTransform(std::vector< std::complex<double> > &b,
     for (unsigned j = 0; j < Dp + 1; ++j) {
         std::complex<double> val = 0.0;
         for (unsigned i = 0; i < D + 1; ++i) {
-            for(unsigned k = 0; k < i + 1; ++k) {
-                for(unsigned l = 0; l < M - i + 1; ++l) {
+            unsigned i_choose_k;
+            for (unsigned k = 0; k < i + 1; ++k) {
+                i_choose_k = k == 0 ? 1 : (i_choose_k * (i - k + 1) / k);
+                unsigned M_minus_i_choose_l; // choose(M - i, l)
+                for (unsigned l = 0; l < M - i + 1; ++l) {
+                    M_minus_i_choose_l = l == 0 ? 1 : (M_minus_i_choose_l * (M-i - l + 1) / l);
                     if (k + l == j) {
-                        val += std::complex<double>(choose(i, k))
-                            *  std::complex<double>(choose(M - i, l))
+                        val += std::complex<double>(i_choose_k)
+                            *  std::complex<double>(M_minus_i_choose_l)
                             *  a[D - i] * pow(2.0 * fs, i) * pow(-1.0, k);
                     }
                 }
