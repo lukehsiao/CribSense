@@ -189,23 +189,24 @@ static void toLowpass(std::vector< std::complex<double> > &b,
                       double w0)
 {
     std::vector<double> pwo;
-    const int d = a.size();
-    const int n = b.size();
-    const int M = int(std::max(double(d), double(n)));
-    const unsigned int start1 = int(std::max(double(n - d), 0.0));
-    const unsigned int start2 = int(std::max(double(d - n), 0.0));
+    const unsigned d = a.size();
+    const unsigned n = b.size();
+    const unsigned M = std::max(d, n);
+    // NOTE: n - d and d - n could be negative, so we cannot
+    // do the subtraction as unsigned
+    const unsigned int start1 = std::max(int(n - d), 0);
+    const unsigned int start2 = std::max(int(d - n), 0);
+    pwo.reserve(M);
     for (int k = M - 1; k > -1; --k) pwo.push_back(pow(w0, double(k)));
     unsigned int k;
     for (k = start2; k < pwo.size() && k - start2 < b.size(); ++k) {
         b[k - start2]
-            *= std::complex<double>(pwo[start1])
-            /  std::complex<double>(pwo[k]);
+            *= std::complex<double>(pwo[start1] / pwo[k]);
     }
 
     for (k = start1; k < pwo.size() && k - start1 < a.size(); ++k) {
         a[k - start1]
-            *= std::complex<double>(pwo[start1])
-            /  std::complex<double>(pwo[k]);
+            *= std::complex<double>(pwo[start1] / pwo[k]);
     }
     normalize(b, a);
 }
