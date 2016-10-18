@@ -39,26 +39,24 @@ polynomialCoefficients(std::vector< std::complex<double> > roots)
         coeffs[0] *= w;
         ++sofar;
     }
-    std::vector< std::complex<double> > result = coeffs;
+    std::vector< std::complex<double> > result = std::move(coeffs);
 
     std::vector< std::complex<double> > pos_roots = roots;
     std::vector< std::complex<double> >::iterator pos_end;
     pos_end = std::remove_if(pos_roots.begin(), pos_roots.end(), hasNegImag);
-    pos_roots.assign(pos_roots.begin(), pos_end);
-    std::sort(pos_roots.begin(), pos_roots.end(), sortComplex);
+    pos_roots.resize(pos_end - pos_roots.begin());
 
     std::vector< std::complex<double> > neg_roots = roots;
     std::vector< std::complex<double> >::iterator neg_end;
     neg_end = std::remove_if(neg_roots.begin(), neg_roots.end(), hasPosImag);
-    neg_roots.assign(neg_roots.begin(), neg_end);
-    std::sort(neg_roots.begin(), neg_roots.end(), sortComplex);
+    neg_roots.resize(pos_end - pos_roots.begin());
 
     const bool same
         =  neg_roots.size() == pos_roots.size()
         && std::equal(pos_roots.begin(), pos_roots.end(), neg_roots.begin());
     if (same) {
-        for (unsigned k = 0; k < coeffs.size(); ++k) {
-            result[k] = std::real(coeffs[k]);
+        for (unsigned k = 0; k < result.size(); ++k) {
+            result[k] = std::real(result[k]);
         }
     }
     return result;
@@ -74,8 +72,8 @@ zerosPolesToTransferCoefficients(std::vector< std::complex<double> > zeros,
                                  std::vector< std::complex<double> > &a,
                                  std::vector< std::complex<double> > &b)
 {
-    a = polynomialCoefficients(poles);
-    b = polynomialCoefficients(zeros);
+    a = polynomialCoefficients(std::move(poles));
+    b = polynomialCoefficients(std::move(zeros));
     for (unsigned int k = 0; k < b.size(); ++k) b[k] *= gain;
 }
 
@@ -89,8 +87,16 @@ zerosPolesToTransferCoefficients(std::vector< std::complex<double> > zeros,
 static void normalize(std::vector< std::complex<double> > &b,
                       std::vector< std::complex<double> > &a)
 {
-    while (a.front() == 0.0 && a.size() > 1) a.erase(a.begin());
-    const std::complex<double> leading_coeff = a.front();
+    std::complex<double> leading_coeff;
+
+    unsigned k = 0;
+    while (a[k] == 0.0 && k < a.size())
+        k++;
+    if (k > 0)
+        a.erase(a.begin(), a.begin()+k);
+    leading_coeff = a.front();
+    if (leading_coeff == 0.0)
+        throw std::range_error("Polynomial is 0");
     for (unsigned int k = 0; k < a.size(); ++k) a[k] /= leading_coeff;
     for (unsigned int k = 0; k < b.size(); ++k) b[k] /= leading_coeff;
 }
@@ -111,6 +117,9 @@ static unsigned choose(unsigned n, unsigned k)
     return result;
 }
 
+static inline int minus_one_to_the_k(unsigned k) {
+    return k % 2 ? -1 : 1;
+}
 
 // Use the bilinear transform to convert the analog filter coefficients in
 // a and b into a digital filter for the sampling frequency fs (1/T).
@@ -129,12 +138,15 @@ static void bilinearTransform(std::vector< std::complex<double> > &b,
     for (unsigned j = 0; j < Np + 1; ++j) {
         std::complex<double> val = 0.0;
         for (unsigned i = 0; i < N + 1; ++i) {
+            unsigned i_choose_k;
             for (unsigned k = 0; k < i + 1; ++k) {
+                i_choose_k = k == 0 ? 1 : (i_choose_k * (i - k + 1) / k);
+                unsigned M_minus_i_choose_l; // choose(M - i, l)
                 for (unsigned l = 0; l < M - i + 1; ++l) {
+                    M_minus_i_choose_l = l == 0 ? 1 : (M_minus_i_choose_l * (M-i - l + 1) / l);
                     if (k + l == j) {
-                        val += std::complex<double>(choose(i, k))
-                            *  std::complex<double>(choose(M - i, l))
-                            *  b[N - i] * pow(2.0 * fs, i) * pow(-1.0, k);
+                        val += std::complex<double>(int(i_choose_k * M_minus_i_choose_l) * minus_one_to_the_k(k))
+                            *  b[N - i] * pow(2.0 * fs, i);
                     }
                 }
             }
@@ -146,12 +158,15 @@ static void bilinearTransform(std::vector< std::complex<double> > &b,
     for (unsigned j = 0; j < Dp + 1; ++j) {
         std::complex<double> val = 0.0;
         for (unsigned i = 0; i < D + 1; ++i) {
-            for(unsigned k = 0; k < i + 1; ++k) {
-                for(unsigned l = 0; l < M - i + 1; ++l) {
+            unsigned i_choose_k;
+            for (unsigned k = 0; k < i + 1; ++k) {
+                i_choose_k = k == 0 ? 1 : (i_choose_k * (i - k + 1) / k);
+                unsigned M_minus_i_choose_l; // choose(M - i, l)
+                for (unsigned l = 0; l < M - i + 1; ++l) {
+                    M_minus_i_choose_l = l == 0 ? 1 : (M_minus_i_choose_l * (M-i - l + 1) / l);
                     if (k + l == j) {
-                        val += std::complex<double>(choose(i, k))
-                            *  std::complex<double>(choose(M - i, l))
-                            *  a[D - i] * pow(2.0 * fs, i) * pow(-1.0, k);
+                        val += std::complex<double>(int(i_choose_k * M_minus_i_choose_l) * minus_one_to_the_k(k))
+                            *  a[D - i] * pow(2.0 * fs, i);
                     }
                 }
             }
@@ -174,23 +189,24 @@ static void toLowpass(std::vector< std::complex<double> > &b,
                       double w0)
 {
     std::vector<double> pwo;
-    const int d = a.size();
-    const int n = b.size();
-    const int M = int(std::max(double(d), double(n)));
-    const unsigned int start1 = int(std::max(double(n - d), 0.0));
-    const unsigned int start2 = int(std::max(double(d - n), 0.0));
+    const unsigned d = a.size();
+    const unsigned n = b.size();
+    const unsigned M = std::max(d, n);
+    // NOTE: n - d and d - n could be negative, so we cannot
+    // do the subtraction as unsigned
+    const unsigned int start1 = std::max(int(n - d), 0);
+    const unsigned int start2 = std::max(int(d - n), 0);
+    pwo.reserve(M);
     for (int k = M - 1; k > -1; --k) pwo.push_back(pow(w0, double(k)));
     unsigned int k;
     for (k = start2; k < pwo.size() && k - start2 < b.size(); ++k) {
         b[k - start2]
-            *= std::complex<double>(pwo[start1])
-            /  std::complex<double>(pwo[k]);
+            *= std::complex<double>(pwo[start1] / pwo[k]);
     }
 
     for (k = start1; k < pwo.size() && k - start1 < a.size(); ++k) {
         a[k - start1]
-            *= std::complex<double>(pwo[start1])
-            /  std::complex<double>(pwo[k]);
+            *= std::complex<double>(pwo[start1] / pwo[k]);
     }
     normalize(b, a);
 }
@@ -208,6 +224,7 @@ prototypeAnalogButterworth(unsigned N,
                            double &gain)
 {
     static const std::complex<double> j = std::complex<double>(0, 1.0);
+    poles.reserve(N);
     for (unsigned k = 1; k < N + 1; ++k) {
         poles.push_back(exp(j * (2.0 * k - 1) / (2.0 * N) * M_PI) * j);
     }
@@ -237,7 +254,9 @@ void butterworth(unsigned int N, double Wn,
     toLowpass(b, a, w0);
     bilinearTransform(b, a, fs);
     out_a.clear();
+    out_a.reserve(a.size());
     for (unsigned k = 0; k < a.size(); ++k) out_a.push_back(std::real(a[k]));
     out_b.clear();
+    out_b.reserve(b.size());
     for (unsigned k = 0; k < b.size(); ++k) out_b.push_back(std::real(b[k]));
 }

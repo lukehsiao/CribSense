@@ -198,7 +198,7 @@ bool MainDialog::doOneFrame()
     if (inFrame.empty()) {
         more = doEmptyFrame(more);
     } else {
-        const cv::Mat outFrame = itsTransform->transform(inFrame);
+        cv::Mat outFrame = itsTransform->transform(inFrame);
         itsInputWidget.show(inFrame);
         itsOutputWidget.show(outFrame);
         if (itsOutput.itsSink) itsOutput.itsSink->write(outFrame);
