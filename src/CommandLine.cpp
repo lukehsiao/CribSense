@@ -53,13 +53,14 @@ void CommandLine::showUsage(const std::string &program, std::ostream &os)
     os << std::endl << program << ": Amplify motion in a video." << std::endl
        << std::endl
        << "Usage: " << program << " [--about] [--gui] [--repeat] [<source>] "
-       << "[--output <file>] [--amplify %] [--threshold %]"
+       << "[--output <file>] [--amplify %] [--threshold %] [--fps <#>]"
        << "[--low-cutoff <Hz>] [--high-cutoff <Hz>]" << std::endl
        << std::endl
        << "Where: " << "--about shows acknowledgements." << std::endl
        << "       " << "--gui opens the GUI controls window." << std::endl
        << "       " << "--repeat loops an input video file." << std::endl
        << "       " << "--output sends processed video to <file>." << std::endl
+       << "       " << "--fps forces the input video fps." << std::endl
        << "       " << amplifyOption()
        << "       " << thresholdOption()
        << "       " << "--low-cutoff is frequency in <Hz>." << std::endl
@@ -141,6 +142,7 @@ CommandLine::CommandLine(int ac, char *av[])
     , sourceCount(0)
     , sinkCount(0)
     , amplify(30.0)
+    , fps(-1.0)
     , lowCutoff( MeasureFps::minimumFps() / 4.0)
     , highCutoff(MeasureFps::minimumFps() / 2.0)
     , threshold(25.0)
@@ -171,6 +173,9 @@ CommandLine::CommandLine(int ac, char *av[])
             outFile = av[i];
             ok = sinkCount == 0;
             ++sinkCount;
+        } else if ("--fps" == arg && (ok = ++i < ac)) {
+            std::stringstream ss(av[i]);
+            ok = (ss >> fps) && fps > 0;
         } else if ("--amplify" == arg && (ok = ++i < ac)) {
             std::stringstream ss(av[i]);
             ok = (ss >> amplify) && amplify >= 0 && amplify <= 100;
