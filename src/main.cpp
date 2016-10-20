@@ -1,12 +1,13 @@
 #include "MainDialog.hpp"
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
+#include <future>
 
 
 // Return true iff can write cl.outFile to work around VideoWriter.
 //
 #include <fstream>
-static bool canWriteOutFileHackRandomHack(const CommandLine &cl)
+bool canWriteOutFileHackRandomHack(const CommandLine &cl)
 {
     const char *const file = cl.outFile.c_str();
     const int random = rand();
@@ -27,11 +28,11 @@ static bool canWriteOutFileHackRandomHack(const CommandLine &cl)
 // Write minimumFps to the output file initially so the output looks silly
 // while measuring the frame rate.
 //
-static double measureFpsHack(const CommandLine &cl, VideoSource &source)
+double measureFpsHack(const CommandLine &cl, VideoSource &source)
 {
     MeasureFps mfps(source.fps());
     if (source.isCamera()) {
-        static const double minimumFps = MeasureFps::minimumFps();
+        const double minimumFps = MeasureFps::minimumFps();
         const int codec = source.fourCcCodec();
         const cv::Size size = source.frameSize();
         RieszTransform rt; cl.apply(rt); rt.fps(minimumFps);
@@ -52,7 +53,7 @@ static double measureFpsHack(const CommandLine &cl, VideoSource &source)
 
 // Return true iff source.isOpened().
 //
-static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
+bool canReadInFile(const CommandLine &cl, const VideoSource &source)
 {
     if (source.isOpened()) return true;
     if (source.isFile()) {
@@ -65,29 +66,56 @@ static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
 }
 
 
+cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
+{
+    return rt->transform(frame);
+}
+
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
 //
-static int batch(const CommandLine &cl)
+int batch(const CommandLine &cl)
 {
     VideoSource source(cl.cameraId, cl.inFile);
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
         double fps;
         if (cl.fps < 0) { // if user-sepcifies fps, use that
-          fps = measureFpsHack(cl, source);
+            fps = measureFpsHack(cl, source);
         } else {
-          fps = cl.fps;
+            fps = cl.fps;
         }
         const cv::Size size = source.frameSize();
         cv::VideoWriter sink(cl.outFile, codec, fps, size);
-        RieszTransform rt; cl.apply(rt); rt.fps(fps);
+        RieszTransform rt_l;
+        cl.apply(rt_l);
+        rt_l.fps(fps);
+        RieszTransform rt_r;
+        cl.apply(rt_r);
+        rt_r.fps(fps);
+        // TODO: Add rt_right
         for (;;) {
             cv::Mat frame; const bool more = source.read(frame);
             if (frame.empty()) {
                 if (!more) return 0;
             } else {
-                sink.write(rt.transform(frame));
+                // Split a single 640 x 480 frame into equal sections, 1 section
+                // for each thread to process
+                const cv::Mat left = frame(cv::Range(0, frame.rows), cv::Range(0, frame.cols / 2));
+                const cv::Mat right = frame(cv::Range(0, frame.rows), cv::Range(frame.cols / 2, frame.cols));
+
+                // // Run both transforms on different threads.
+                auto r_left = std::async(do_transforms, &rt_l, left);
+                auto r_right = std::async(do_transforms, &rt_r, right);
+                // // t_left.join();
+                // // t_right.join();
+                //
+                // // recombine results and output
+                cv::Mat result;
+                cv::Mat new_left = r_left.get();
+                cv::Mat new_right = r_right.get();
+                cv::hconcat(new_left, new_right, result);
+                sink.write(result);
             }
         }
     }

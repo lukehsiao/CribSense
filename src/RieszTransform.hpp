@@ -349,7 +349,7 @@ class RieszTransform {
     RieszPyramid itsPrior;
 
 public:
-
+  
     // Set the frames per second which is the filter sampling frequency.
     //
     void fps(double fps) { itsBand.itsFps = fps; itsBand.computeFilter(); }
