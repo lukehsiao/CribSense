@@ -73,7 +73,12 @@ static int batch(const CommandLine &cl)
     VideoSource source(cl.cameraId, cl.inFile);
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
-        const double fps = measureFpsHack(cl, source);
+        double fps;
+        if (cl.fps < 0) { // if user-sepcifies fps, use that
+          fps = measureFpsHack(cl, source);
+        } else {
+          fps = cl.fps;
+        }
         const cv::Size size = source.frameSize();
         cv::VideoWriter sink(cl.outFile, codec, fps, size);
         RieszTransform rt; cl.apply(rt); rt.fps(fps);

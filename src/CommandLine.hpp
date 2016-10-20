@@ -120,6 +120,7 @@ struct CommandLine {
     int cameraId;                    // The camera if not negative.
     int sourceCount;                 // Count of video sources specified.
     int sinkCount;                   // Count of video sinks specified.
+    double fps;                         // user-specified fps of input video.
     double amplify;                  // The current amplification.
     double lowCutoff;                // The low frequency of the bandpass.
     double highCutoff;               // The high frequency of the bandpass.
