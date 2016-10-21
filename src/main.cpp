@@ -2,12 +2,11 @@
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
 #include <future>
-// #include <time>
 
 // Return true iff can write cl.outFile to work around VideoWriter.
 //
 #include <fstream>
-bool canWriteOutFileHackRandomHack(const CommandLine &cl)
+static bool canWriteOutFileHackRandomHack(const CommandLine &cl)
 {
     const char *const file = cl.outFile.c_str();
     const int random = rand();
@@ -28,7 +27,7 @@ bool canWriteOutFileHackRandomHack(const CommandLine &cl)
 // Write minimumFps to the output file initially so the output looks silly
 // while measuring the frame rate.
 //
-double measureFpsHack(const CommandLine &cl, VideoSource &source)
+static double measureFpsHack(const CommandLine &cl, VideoSource &source)
 {
     MeasureFps mfps(source.fps());
     if (source.isCamera()) {
@@ -53,7 +52,7 @@ double measureFpsHack(const CommandLine &cl, VideoSource &source)
 
 // Return true iff source.isOpened().
 //
-bool canReadInFile(const CommandLine &cl, const VideoSource &source)
+static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
 {
     if (source.isOpened()) return true;
     if (source.isFile()) {
@@ -76,7 +75,7 @@ cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
 //
-int batch(const CommandLine &cl)
+static int batch(const CommandLine &cl)
 {
     time_t start, end;
     time(&start);
