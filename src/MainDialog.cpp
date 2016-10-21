@@ -203,7 +203,8 @@ bool MainDialog::doOneFrame()
 		cv::Mat maskFrame;
 		cv::Mat resultFrame;
 		cv::cvtColor(inFrame, hsvFrame, CV_BGR2HSV);
-		cv::inRange(hsvFrame, cv::Scalar(17, 0, 0), cv::Scalar(21, 245, 425), maskFrame);
+		//cv::inRange(hsvFrame, cv::Scalar(17, 0, 0), cv::Scalar(21, 245, 245), maskFrame);	//color filter for baby blanket
+		cv::inRange(hsvFrame, cv::Scalar(33, 100, 0), cv::Scalar(35, 245, 255), maskFrame);
 		cv::bitwise_and(inFrame, inFrame, resultFrame, maskFrame);
 		
 		cv::Rect bounding_box;
