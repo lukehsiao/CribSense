@@ -31,7 +31,7 @@ static double measureFpsHack(const CommandLine &cl, VideoSource &source)
 {
     MeasureFps mfps(source.fps());
     if (source.isCamera()) {
-        const double minimumFps = MeasureFps::minimumFps();
+        static const double minimumFps = MeasureFps::minimumFps();
         const int codec = source.fourCcCodec();
         const cv::Size size = source.frameSize();
         RieszTransform rt; cl.apply(rt); rt.fps(minimumFps);
