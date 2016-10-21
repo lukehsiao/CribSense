@@ -2,7 +2,7 @@
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
 #include <future>
-
+// #include <time>
 
 // Return true iff can write cl.outFile to work around VideoWriter.
 //
@@ -65,7 +65,9 @@ bool canReadInFile(const CommandLine &cl, const VideoSource &source)
     return false;
 }
 
-
+/**
+ * Launch rt.transform for the given RieszTransform and the given frame.
+ */
 cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
 {
     return rt->transform(frame);
@@ -76,6 +78,8 @@ cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
 //
 int batch(const CommandLine &cl)
 {
+    time_t start, end;
+    time(&start);
     VideoSource source(cl.cameraId, cl.inFile);
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
@@ -87,39 +91,44 @@ int batch(const CommandLine &cl)
         }
         const cv::Size size = source.frameSize();
         cv::VideoWriter sink(cl.outFile, codec, fps, size);
-        RieszTransform rt_l;
-        cl.apply(rt_l);
-        rt_l.fps(fps);
-        RieszTransform rt_r;
-        cl.apply(rt_r);
-        rt_r.fps(fps);
-        // TODO: Add rt_right
+
+        // Create 3 RieszTransforms. One for each section.
+        RieszTransform rt_left, rt_mid, rt_right;
+        cl.apply(rt_left); cl.apply(rt_mid); cl.apply(rt_right);
+        rt_left.fps(fps); rt_mid.fps(fps); rt_right.fps(fps);
         for (;;) {
+            // for each frame
             cv::Mat frame; const bool more = source.read(frame);
             if (frame.empty()) {
-                if (!more) return 0;
+                if (!more) {
+                  time(&end);
+                  double diff_t = difftime(end, start);
+                  printf("[info] time: %f\n", diff_t);
+                  return 0;
+                }
             } else {
                 // Split a single 640 x 480 frame into equal sections, 1 section
                 // for each thread to process
-                const cv::Mat left = frame(cv::Range(0, frame.rows), cv::Range(0, frame.cols / 2));
-                const cv::Mat right = frame(cv::Range(0, frame.rows), cv::Range(frame.cols / 2, frame.cols));
+                const cv::Mat left = frame(cv::Range(0, frame.rows), cv::Range(0, frame.cols / 3));
+                const cv::Mat mid = frame(cv::Range(0, frame.rows), cv::Range(frame.cols / 3, frame.cols * 2 / 3));
+                const cv::Mat right = frame(cv::Range(0, frame.rows), cv::Range(frame.cols * 2 / 3, frame.cols));
 
-                // // Run both transforms on different threads.
-                auto r_left = std::async(do_transforms, &rt_l, left);
-                auto r_right = std::async(do_transforms, &rt_r, right);
-                // // t_left.join();
-                // // t_right.join();
-                //
-                // // recombine results and output
+                // Run both transforms on different threads.
+                auto t_left = std::async(std::launch::async, do_transforms, &rt_left, left);
+                auto t_mid = std::async(std::launch::async, do_transforms, &rt_mid, mid);
+                auto t_right = std::async(std::launch::async, do_transforms, &rt_right, right);
+
+                // recombine results and output
                 cv::Mat result;
-                cv::Mat new_left = r_left.get();
-                cv::Mat new_right = r_right.get();
-                cv::hconcat(new_left, new_right, result);
+                cv::Mat sections[] = {
+                  t_left.get(), t_mid.get(), t_right.get(),
+                };
+                cv::hconcat(sections, 3, result);
                 sink.write(result);
             }
         }
     }
-    return 1;
+    return 1; // error condition
 }
 
 
@@ -135,6 +144,7 @@ int main(int argc, char *argv[])
                 return qApplication.exec();
             }
         } else {
+            printf("[info] starting batch processing.\n");
             if (cl.sourceCount && cl.sinkCount) return batch(cl);
             if (cl.help) return 0;
         }
