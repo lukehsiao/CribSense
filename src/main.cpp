@@ -112,7 +112,7 @@ static int batch(const CommandLine &cl)
                 const cv::Mat mid = frame(cv::Range(0, frame.rows), cv::Range(frame.cols / 3, frame.cols * 2 / 3));
                 const cv::Mat right = frame(cv::Range(0, frame.rows), cv::Range(frame.cols * 2 / 3, frame.cols));
 
-                // Run both transforms on different threads.
+                // Run each transform independently.
                 auto t_left = std::async(std::launch::async, do_transforms, &rt_left, left);
                 auto t_mid = std::async(std::launch::async, do_transforms, &rt_mid, mid);
                 auto t_right = std::async(std::launch::async, do_transforms, &rt_right, right);
