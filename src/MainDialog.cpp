@@ -198,7 +198,6 @@ bool MainDialog::doOneFrame()
     if (inFrame.empty()) {
         more = doEmptyFrame(more);
     } else {
-		//if (!beenCropped)	{
 		cv::Mat hsvFrame;
 		cv::Mat maskFrame;
 		cv::Mat resultFrame;
@@ -220,8 +219,12 @@ bool MainDialog::doOneFrame()
 				largest_contour = i;               			
 			}
 		}
-		bounding_box = cv::boundingRect(contours[largest_contour]);
-		cv::rectangle(resultFrame, bounding_box, cv::Scalar(0, 255, 0), 2, 8, 0);	//draw box
+		
+		if (!contours.empty())	{
+			bounding_box = cv::boundingRect(contours[largest_contour]);
+			cv::rectangle(resultFrame, bounding_box, cv::Scalar(0, 255, 0), 2, 8, 0);	//draw box
+			noBoundingBox = false;
+		}
 		itsInputWidget.show(resultFrame);
 		
 		if (!beenCropped)	{
@@ -229,7 +232,9 @@ bool MainDialog::doOneFrame()
 			beenCropped = true;
 		}
 		
-		inFrame = inFrame(cropBox);
+		if (!noBoundingBox)	{
+			inFrame = inFrame(cropBox);
+		}
 		
 		cv::Mat outFrame = itsTransform->transform(inFrame);		
         //itsInputWidget.show(inFrame);

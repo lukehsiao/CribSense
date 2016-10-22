@@ -152,6 +152,7 @@ class MainDialog : public QDialog {
 	
 	//for adaptive cropping
 	bool beenCropped = false;
+	bool noBoundingBox = true;
 	cv::Rect cropBox;
 
     MeasureFps itsFps;
