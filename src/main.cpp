@@ -1,7 +1,7 @@
 #include "MainDialog.hpp"
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
-
+#include <future>
 
 // Return true iff can write cl.outFile to work around VideoWriter.
 //
@@ -64,34 +64,70 @@ static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
     return false;
 }
 
+/**
+ * Launch rt.transform for the given RieszTransform and the given frame.
+ */
+cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
+{
+    return rt->transform(frame);
+}
 
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
 //
 static int batch(const CommandLine &cl)
 {
+    time_t start, end;
+    time(&start);
     VideoSource source(cl.cameraId, cl.inFile);
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
         double fps;
         if (cl.fps < 0) { // if user-sepcifies fps, use that
-          fps = measureFpsHack(cl, source);
+            fps = measureFpsHack(cl, source);
         } else {
-          fps = cl.fps;
+            fps = cl.fps;
         }
         const cv::Size size = source.frameSize();
         cv::VideoWriter sink(cl.outFile, codec, fps, size);
-        RieszTransform rt; cl.apply(rt); rt.fps(fps);
+
+        // Create 3 RieszTransforms. One for each section.
+        RieszTransform rt_left, rt_mid, rt_right;
+        cl.apply(rt_left); cl.apply(rt_mid); cl.apply(rt_right);
+        rt_left.fps(fps); rt_mid.fps(fps); rt_right.fps(fps);
         for (;;) {
+            // for each frame
             cv::Mat frame; const bool more = source.read(frame);
             if (frame.empty()) {
-                if (!more) return 0;
+                if (!more) {
+                  time(&end);
+                  double diff_t = difftime(end, start);
+                  printf("[info] time: %f\n", diff_t);
+                  return 0;
+                }
             } else {
-                sink.write(rt.transform(frame));
+                // Split a single 640 x 480 frame into equal sections, 1 section
+                // for each thread to process
+                const cv::Mat left = frame(cv::Range(0, frame.rows), cv::Range(0, frame.cols / 3));
+                const cv::Mat mid = frame(cv::Range(0, frame.rows), cv::Range(frame.cols / 3, frame.cols * 2 / 3));
+                const cv::Mat right = frame(cv::Range(0, frame.rows), cv::Range(frame.cols * 2 / 3, frame.cols));
+
+                // Run each transform independently.
+                auto t_left = std::async(std::launch::async, do_transforms, &rt_left, left);
+                auto t_mid = std::async(std::launch::async, do_transforms, &rt_mid, mid);
+                auto t_right = std::async(std::launch::async, do_transforms, &rt_right, right);
+
+                // recombine results and output
+                cv::Mat result;
+                cv::Mat sections[] = {
+                  t_left.get(), t_mid.get(), t_right.get(),
+                };
+                cv::hconcat(sections, 3, result);
+                sink.write(result);
             }
         }
     }
-    return 1;
+    return 1; // error condition
 }
 
 
@@ -107,6 +143,7 @@ int main(int argc, char *argv[])
                 return qApplication.exec();
             }
         } else {
+            printf("[info] starting batch processing.\n");
             if (cl.sourceCount && cl.sinkCount) return batch(cl);
             if (cl.help) return 0;
         }
