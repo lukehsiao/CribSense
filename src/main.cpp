@@ -77,6 +77,19 @@ cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
 //
 static int batch(const CommandLine &cl)
 {
+    // Buffer of 3 frames for use with the DifferentialCollins algorithm.
+    cv::Mat frameBuffer[3];
+    // frameBuffer[0] = Mat::zeros(640, 480, CV_8UC1);
+    // frameBuffer[1] = Mat::zeros(640, 480, CV_8UC1);
+    // frameBuffer[2] = Mat::zeros(640, 480, CV_8UC1);
+    int frameCount = 0;
+
+    // Parameters for the DifferentialCollins algorithm
+    int erode = 2;
+    cv::Mat erode_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erode,erode));
+    int diff_threshold = 5;
+
+
     time_t start, end;
     time(&start);
     VideoSource source(cl.cameraId, cl.inFile);
@@ -106,6 +119,7 @@ static int batch(const CommandLine &cl)
                   return 0;
                 }
             } else {
+                if (frameCount < 3) {frameCount++;} // track when buffer is full
                 // Split a single 640 x 480 frame into equal sections, 1 section
                 // for each thread to process
                 const cv::Mat left = frame(cv::Range(0, frame.rows), cv::Range(0, frame.cols / 3));
@@ -123,7 +137,51 @@ static int batch(const CommandLine &cl)
                   t_left.get(), t_mid.get(), t_right.get(),
                 };
                 cv::hconcat(sections, 3, result);
+                // Update all the images in the ImageVector
+                frameBuffer[0] = frameBuffer[1].clone();
+                frameBuffer[1] = frameBuffer[2].clone();
+                frameBuffer[2] = result.clone();
+
                 sink.write(result);
+
+                // Once all of the 3 frames are filled, check for motion;
+                if (frameCount >= 3) {
+                    // Perform DifferentialCollins Algorithm
+                    cv::Mat h_d1;
+                    cv::Mat h_d2;
+                    cv::Mat evaluation;
+
+                    // Convert to GrayScale
+                    try {
+                        // TODO: Is this the correct color space transformation?
+                        // cv::cvtColor(frameBuffer[0], frameBuffer[0], CV_RGB2GRAY);
+                        // cv::cvtColor(frameBuffer[1], frameBuffer[1], CV_RGB2GRAY);
+                        // cv::cvtColor(frameBuffer[2], frameBuffer[2], CV_RGB2GRAY);
+
+                        // Check differences
+                        cv::absdiff(frameBuffer[0], frameBuffer[2], h_d1);
+                        cv::absdiff(frameBuffer[1], frameBuffer[2], h_d2);
+                        cv::bitwise_and(h_d1, h_d2, evaluation);
+
+                        // threshold
+                        cv::threshold(evaluation, evaluation, diff_threshold, 255, CV_THRESH_BINARY);
+
+                        // erode
+                        cv::erode(evaluation, evaluation, erode_kernel);
+                    }
+                    catch(cv::Exception &ex) {
+                        printf("[error] OpenCV Exception %s", ex.what());
+                    }
+                    try {
+                        cv::imshow( "Evaluation", evaluation );                  // Show our image inside it.
+                        cv::waitKey(0);
+                        cv::destroyAllWindows();
+                    }
+                    catch(cv::Exception &ex) {
+                        printf("[error] OpenCV Exception in display %s", ex.what());
+                        return 1;
+                    }
+                }
             }
         }
     }
