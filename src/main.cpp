@@ -72,6 +72,74 @@ cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
     return rt->transform(frame);
 }
 
+int isValidMotion(cv::Mat evaluation, int minimumChanges, int minimumDuration = 1) {
+    int numberOfChanges = 0;
+    cv::Rect rectangle(evaluation.cols, evaluation.rows, 0, 0);
+
+    // -----------------------------------
+    // loop over image and detect changes
+
+    for(int i = 0; i < evaluation.cols; i++)
+    {
+        for(int j = 0; j <  evaluation.rows; j++)
+        {
+            if(static_cast<int>(evaluation.at<uchar>(j,i)) == 255)
+            {
+                numberOfChanges++;
+            }
+        }
+    }
+
+    static int duration = 0;
+    if (numberOfChanges >= minimumChanges) {
+        duration++;
+        if (duration >= minimumDuration) {
+            return numberOfChanges;
+        }
+    }
+    else {
+        if (duration > 0) {
+          duration--;
+        }
+    }
+
+    return 0;
+}
+
+cv::Mat DifferentialCollins(cv::Mat *images, int erode, int threshold) {
+    cv::Mat h_d1;
+    cv::Mat h_d2;
+    cv::Mat evaluation;
+    cv::Mat erode_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erode,erode));
+
+    // Convert to GrayScale
+    try {
+        // Check differences
+        cv::absdiff(images[0], images[2], h_d1);
+        cv::absdiff(images[1], images[2], h_d2);
+        cv::bitwise_and(h_d1, h_d2, evaluation);
+
+        // threshold
+        cv::threshold(evaluation, evaluation, threshold, 255, CV_THRESH_BINARY);
+
+        // erode
+        cv::erode(evaluation, evaluation, erode_kernel);
+    }
+    catch(cv::Exception &ex) {
+        printf("[error] OpenCV Exception %s", ex.what());
+    }
+    try {
+        cv::imshow( "Evaluation", evaluation );                  // Show our image inside it.
+        cv::waitKey(0);
+        cv::destroyAllWindows();
+    }
+    catch(cv::Exception &ex) {
+        printf("[error] OpenCV Exception in display %s", ex.what());
+        return 1;
+    }
+    return evaluation;
+}
+
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
 //
@@ -85,9 +153,9 @@ static int batch(const CommandLine &cl)
     int frameCount = 0;
 
     // Parameters for the DifferentialCollins algorithm
+    // TODO: Parameterize this as commandline params or config file
     int erode = 2;
-    cv::Mat erode_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erode,erode));
-    int diff_threshold = 5;
+    int diff_threshold = 9;
 
 
     time_t start, end;
@@ -141,46 +209,15 @@ static int batch(const CommandLine &cl)
                 frameBuffer[0] = frameBuffer[1].clone();
                 frameBuffer[1] = frameBuffer[2].clone();
                 frameBuffer[2] = result.clone();
+                cv::cvtColor(frameBuffer[2], frameBuffer[2], CV_BGR2GRAY);
+
 
                 sink.write(result);
 
                 // Once all of the 3 frames are filled, check for motion;
                 if (frameCount >= 3) {
-                    // Perform DifferentialCollins Algorithm
-                    cv::Mat h_d1;
-                    cv::Mat h_d2;
-                    cv::Mat evaluation;
-
-                    // Convert to GrayScale
-                    try {
-                        // TODO: Is this the correct color space transformation?
-                        // cv::cvtColor(frameBuffer[0], frameBuffer[0], CV_RGB2GRAY);
-                        // cv::cvtColor(frameBuffer[1], frameBuffer[1], CV_RGB2GRAY);
-                        // cv::cvtColor(frameBuffer[2], frameBuffer[2], CV_RGB2GRAY);
-
-                        // Check differences
-                        cv::absdiff(frameBuffer[0], frameBuffer[2], h_d1);
-                        cv::absdiff(frameBuffer[1], frameBuffer[2], h_d2);
-                        cv::bitwise_and(h_d1, h_d2, evaluation);
-
-                        // threshold
-                        cv::threshold(evaluation, evaluation, diff_threshold, 255, CV_THRESH_BINARY);
-
-                        // erode
-                        cv::erode(evaluation, evaluation, erode_kernel);
-                    }
-                    catch(cv::Exception &ex) {
-                        printf("[error] OpenCV Exception %s", ex.what());
-                    }
-                    try {
-                        cv::imshow( "Evaluation", evaluation );                  // Show our image inside it.
-                        cv::waitKey(0);
-                        cv::destroyAllWindows();
-                    }
-                    catch(cv::Exception &ex) {
-                        printf("[error] OpenCV Exception in display %s", ex.what());
-                        return 1;
-                    }
+                    cv::Mat evaluation = DifferentialCollins(frameBuffer, erode, diff_threshold);
+                    printf("[info] Motion: %d\n", isValidMotion(evaluation, 2));
                 }
             }
         }
