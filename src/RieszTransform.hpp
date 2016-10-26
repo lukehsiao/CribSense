@@ -7,6 +7,46 @@
 #include "Butterworth.hpp"
 #include "ComplexMat.hpp"
 
+// A low-pass or high-pass filter.
+//
+class RieszTemporalFilter {
+
+    RieszTemporalFilter &operator=(const RieszTemporalFilter &);
+    RieszTemporalFilter(const RieszTemporalFilter &);
+
+public:
+
+    double itsFrequency;
+    std::vector<double> itsA;
+    std::vector<double> itsB;
+
+    // Compute this filter's Butterworth coefficients for the sampling
+    // frequency, fps (frames per second).
+    //
+    void computeCoefficients(double halfFps)
+    {
+        const double Wn = itsFrequency / halfFps;
+        butterworth(1, Wn, itsA, itsB);
+    }
+
+    void passEach(cv::Mat &result,
+                  const cv::Mat &phase,
+                  const cv::Mat &prior) const {
+        result
+            = itsB[0] * phase
+            + itsB[1] * prior
+            - itsA[1] * result;
+        result /= itsA[0];
+    }
+    void pass(CompExpMat &result,
+              const CompExpMat &phase,
+              const CompExpMat &prior) const {
+        passEach(cos(result), cos(phase), cos(prior));
+        passEach(sin(result), sin(phase), sin(prior));
+    }
+
+    RieszTemporalFilter(double f): itsFrequency(f), itsA(), itsB() {}
+};
 
 // One level of a Riesz Transform (R) Laplacian Pyramid (Lp).
 //
@@ -14,21 +54,11 @@ class RieszPyramidLevel {
 
     RieszPyramidLevel &operator=(const RieszPyramidLevel &);
 
-public:
-
     cv::Mat itsLp;                     // the frame scaled to this octave
     ComplexMat itsR;                   // the transform
     CompExpMat itsPhase;               // the amplified result
     CompExpMat itsRealPass;            // per-level filter state maintained
     CompExpMat itsImagPass;            // across frames
-
-    void build(const cv::Mat &octave) {
-        static const cv::Mat realK = (cv::Mat_<float>(1, 3) << -0.6, 0, 0.6);
-        static const cv::Mat imagK = realK.t();
-        itsLp = octave;
-        cv::filter2D(itsLp, real(itsR), itsLp.depth(), realK);
-        cv::filter2D(itsLp, imag(itsR), itsLp.depth(), imagK);
-    }
 
     // Write into result the element-wise inverse cosine of X.
     //
@@ -38,29 +68,6 @@ public:
         float *const pResult  = result.ptr<float>(0);
         const int count = X.rows * X.cols;
         for (int i = 0; i < count; ++i) pResult[i] = acos(pX[i]);
-    }
-
-    void unwrapOrientPhase(const RieszPyramidLevel &prior) {
-        cv::Mat temp1
-            =      itsLp.mul(prior.itsLp)
-            + real(itsR).mul(real(prior.itsR))
-            + imag(itsR).mul(imag(prior.itsR));
-        cv::Mat temp2
-            =       real(itsR).mul(prior.itsLp)
-            - real(prior.itsR).mul(itsLp);
-        cv::Mat temp3
-            =       imag(itsR).mul(prior.itsLp)
-            - imag(prior.itsR).mul(itsLp);
-        cv::Mat tempP  = temp2.mul(temp2) + temp3.mul(temp3);
-        cv::Mat phi    = tempP            + temp1.mul(temp1);
-        cv::sqrt(phi, phi);
-        cv::divide(temp1, phi, temp1);
-        arcCosX(temp1, phi);
-        cv::sqrt(tempP, tempP);
-        cv::divide(temp2, tempP, temp2);
-        cv::divide(temp3, tempP, temp3);
-        cos(itsPhase) = temp2.mul(phi);
-        sin(itsPhase) = temp3.mul(phi);
     }
 
     // Write into result the element-wise cosines and sines of X.
@@ -104,6 +111,67 @@ public:
         cv::sepFilter2D(amplitude, temp, -1, kernel, kernel);
         cv::divide(cos(result), temp, cos(result));
         cv::divide(sin(result), temp, sin(result));
+    }
+
+public:
+    // note: this will be called after the first call to build(), which
+    // sets itsLp
+    void initialize() {
+    	const cv::Size size = itsLp.size();
+        cos(itsPhase)    = cv::Mat::zeros(size, CV_32F);
+        sin(itsPhase)    = cv::Mat::zeros(size, CV_32F);
+        cos(itsRealPass) = cv::Mat::zeros(size, CV_32F);
+        sin(itsRealPass) = cv::Mat::zeros(size, CV_32F);
+        cos(itsImagPass) = cv::Mat::zeros(size, CV_32F);
+        sin(itsImagPass) = cv::Mat::zeros(size, CV_32F);
+    }
+
+    void build(const cv::Mat &octave) {
+        static const cv::Mat realK = (cv::Mat_<float>(1, 3) << -0.6, 0, 0.6);
+        static const cv::Mat imagK = realK.t();
+        itsLp = octave;
+        cv::filter2D(itsLp, real(itsR), itsLp.depth(), realK);
+        cv::filter2D(itsLp, imag(itsR), itsLp.depth(), imagK);
+    }
+
+    void assign(const RieszPyramidLevel& current) {
+    	/**/   current.itsLp      .copyTo(        itsLp   );
+        real ( current.itsR     ) .copyTo( real ( itsR     ));
+        imag ( current.itsR     ) .copyTo( imag ( itsR     ));
+        cos  ( current.itsPhase ) .copyTo( cos  ( itsPhase ));
+        sin  ( current.itsPhase ) .copyTo( sin  ( itsPhase ));
+    }
+
+    void filter(const RieszTemporalFilter& hiCut, const RieszTemporalFilter& loCut, RieszPyramidLevel& prior) {
+        hiCut.pass(itsRealPass, itsPhase, prior.itsPhase);
+        loCut.pass(itsImagPass, itsPhase, prior.itsPhase);
+    }
+
+    const cv::Mat& get_result() const {
+    	return itsLp;
+    }
+
+    void unwrapOrientPhase(const RieszPyramidLevel &prior) {
+        cv::Mat temp1
+            =      itsLp.mul(prior.itsLp)
+            + real(itsR).mul(real(prior.itsR))
+            + imag(itsR).mul(imag(prior.itsR));
+        cv::Mat temp2
+            =       real(itsR).mul(prior.itsLp)
+            - real(prior.itsR).mul(itsLp);
+        cv::Mat temp3
+            =       imag(itsR).mul(prior.itsLp)
+            - imag(prior.itsR).mul(itsLp);
+        cv::Mat tempP  = temp2.mul(temp2) + temp3.mul(temp3);
+        cv::Mat phi    = tempP            + temp1.mul(temp1);
+        cv::sqrt(phi, phi);
+        cv::divide(temp1, phi, temp1);
+        arcCosX(temp1, phi);
+        cv::sqrt(tempP, tempP);
+        cv::divide(temp2, tempP, temp2);
+        cv::divide(temp3, tempP, temp3);
+        cos(itsPhase) = temp2.mul(phi);
+        sin(itsPhase) = temp3.mul(phi);
     }
 
     // Multipy the phase difference in this level by alpha but only up to
@@ -170,9 +238,9 @@ public:
     //
     cv::Mat collapse() const {
         const int count = itsLevel.size() - 1;
-        cv::Mat result = itsLevel[count].itsLp;
+        cv::Mat result = itsLevel[count].get_result();
         for (int i = count - 1; i >= 0; --i) {
-            const cv::Mat &octave = itsLevel[i].itsLp;
+            const cv::Mat &octave = itsLevel[i].get_result();
             cv::Mat up; cv::pyrUp(result, up, octave.size());
             result = up + octave;
         }
@@ -208,57 +276,9 @@ public:
         const size_type count = itsLevel.size();
         for (size_type i = 0; i < count; ++i) {
             RieszPyramidLevel &rpl = itsLevel[i];
-            const cv::Size size = rpl.itsLp.size();
-            cos(rpl.itsPhase)    = cv::Mat::zeros(size, CV_32F);
-            sin(rpl.itsPhase)    = cv::Mat::zeros(size, CV_32F);
-            cos(rpl.itsRealPass) = cv::Mat::zeros(size, CV_32F);
-            sin(rpl.itsRealPass) = cv::Mat::zeros(size, CV_32F);
-            cos(rpl.itsImagPass) = cv::Mat::zeros(size, CV_32F);
-            sin(rpl.itsImagPass) = cv::Mat::zeros(size, CV_32F);
+            rpl.initialize();
         }
     }
-};
-
-
-// A low-pass or high-pass filter.
-//
-class RieszTemporalFilter {
-
-    RieszTemporalFilter &operator=(const RieszTemporalFilter &);
-    RieszTemporalFilter(const RieszTemporalFilter &);
-
-public:
-
-    double itsFrequency;
-    std::vector<double> itsA;
-    std::vector<double> itsB;
-
-    // Compute this filter's Butterworth coefficients for the sampling
-    // frequency, fps (frames per second).
-    //
-    void computeCoefficients(double halfFps)
-    {
-        const double Wn = itsFrequency / halfFps;
-        butterworth(1, Wn, itsA, itsB);
-    }
-
-    void passEach(cv::Mat &result,
-                  const cv::Mat &phase,
-                  const cv::Mat &prior) const {
-        result
-            = itsB[0] * phase
-            + itsB[1] * prior
-            - itsA[1] * result;
-        result /= itsA[0];
-    }
-    void pass(CompExpMat &result,
-              const CompExpMat &phase,
-              const CompExpMat &prior) const {
-        passEach(cos(result), cos(phase), cos(prior));
-        passEach(sin(result), sin(phase), sin(prior));
-    }
-
-    RieszTemporalFilter(double f): itsFrequency(f), itsA(), itsB() {}
 };
 
 
@@ -303,17 +323,12 @@ public:
     //
     void shift(const RieszPyramidLevel &current, RieszPyramidLevel &prior)
     {
-        /**/   current.itsLp      .copyTo(        prior.itsLp   );
-        real ( current.itsR     ) .copyTo( real ( prior.itsR     ));
-        imag ( current.itsR     ) .copyTo( imag ( prior.itsR     ));
-        cos  ( current.itsPhase ) .copyTo( cos  ( prior.itsPhase ));
-        sin  ( current.itsPhase ) .copyTo( sin  ( prior.itsPhase ));
+    	prior.assign(current);
     }
 
     void filterLevel(RieszPyramidLevel &current, RieszPyramidLevel &prior)
     {
-        itsHiCut.pass(current.itsRealPass, current.itsPhase, prior.itsPhase);
-        itsLoCut.pass(current.itsImagPass, current.itsPhase, prior.itsPhase);
+    	current.filter(itsHiCut, itsLoCut, prior);
         shift(current, prior);
     }
 
