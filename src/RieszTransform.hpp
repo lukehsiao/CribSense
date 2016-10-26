@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "Butterworth.hpp"
-#include "ComplexMat.hpp"
 
 // A low-pass or high-pass filter.
 //
@@ -57,7 +56,7 @@ class RieszPyramidLevel {
     RieszPyramidLevel &operator=(const RieszPyramidLevel &);
 
     cv::Mat itsLp;                     // the frame scaled to this octave
-    ComplexMat itsR;                   // the transform
+    cv::Mat itsR;                      // the transform
     cv::Mat itsPhase;                  // the amplified result
     cv::Mat itsRealPass;               // per-level filter state maintained
     cv::Mat itsImagPass;               // across frames
@@ -66,25 +65,71 @@ public:
     // note: this will be called after the first call to build(), which
     // sets itsLp
     void initialize() {
-    	const cv::Size size = itsLp.size();
+        const cv::Size size = itsLp.size();
         itsPhase = cv::Mat::zeros(size, CV_32FC2);
         itsRealPass = cv::Mat::zeros(size, CV_32FC2);
         itsImagPass = cv::Mat::zeros(size, CV_32FC2);
     }
 
+private:
+    static float sample(const float * __restrict data, int R, int C, int i, int j) {
+        if (i < 0 || i > R)
+            i = cv::borderInterpolate(i, R, cv::BORDER_DEFAULT);
+        if (j < 0 || j > C)
+            j = cv::borderInterpolate(j, C, cv::BORDER_DEFAULT);
+        return data[i * C + j];
+    }
+
+public:
     void build(const cv::Mat &octave) {
+        static const float K[3] = { -0.6, 0, 0.6 };
+        itsLp = octave;
+
+        const float * __restrict const lpData = itsLp.ptr<float>(0);
+
+#if 0
+        itsR.create(itsLp.size(), CV_32FC2);
+        float * __restrict const rData = itsR.ptr<float>(0);
+
+        const int R = itsLp.rows;
+        const int C = itsLp.cols;
+        for (int i = 0; i < R; i++) {
+            for (int j = 0; j < C; j++) {
+                // real part, K should be a row kernel
+                float acc = 0;
+                for (int k = -1; k < 2; k++) {
+                    int i1 = i;
+                    int j1 = j+k;
+                    acc += K[k+1] * sample(lpData, R, C, i1, j1);
+                }
+                rData[R * i * 2 + j * 2] = acc;
+
+                // imaginary part, K should be a column kernel
+                acc = 0;
+                for (int k = -1; k < 2; k++) {
+                    int i1 = i+k;
+                    int j1 = j;
+                    acc += K[k+1] * sample(lpData, R, C, i1, j1);
+                }
+                rData[R * i * 2 + j * 2 + 1] = acc;
+            }
+        }
+#else
         static const cv::Mat realK = (cv::Mat_<float>(1, 3) << -0.6, 0, 0.6);
         static const cv::Mat imagK = realK.t();
-        itsLp = octave;
-        cv::filter2D(itsLp, real(itsR), itsLp.depth(), realK);
-        cv::filter2D(itsLp, imag(itsR), itsLp.depth(), imagK);
+
+        cv::Mat split[2];
+
+        cv::filter2D(itsLp, split[0], itsLp.depth(), realK);
+        cv::filter2D(itsLp, split[1], itsLp.depth(), imagK);
+        cv::merge(split, 2, itsR);
+#endif
     }
 
     void assign(const RieszPyramidLevel& current) {
-    	/**/   current.itsLp      .copyTo(        itsLp   );
-        real ( current.itsR     ) .copyTo( real ( itsR     ));
-        imag ( current.itsR     ) .copyTo( imag ( itsR     ));
-               current.itsPhase   .copyTo(        itsPhase );
+        current.itsLp.copyTo(itsLp);
+        current.itsR.copyTo(itsR);
+        current.itsPhase.copyTo(itsPhase);
     }
 
     void filter(const RieszTemporalFilter& hiCut, const RieszTemporalFilter& loCut, RieszPyramidLevel& prior) {
@@ -128,25 +173,23 @@ public:
         cos(itsPhase) = temp2.mul(phi);
         sin(itsPhase) = temp3.mul(phi);
 #else
-        assert(itsLp.isContinuous() && real(itsR).isContinuous() && imag(itsR).isContinuous()
+        assert(itsLp.isContinuous() && itsR.isContinuous()
                && itsPhase.isContinuous());
 
         const float * __restrict const lpData = itsLp.ptr<float>(0);
         const float * __restrict const priorLpData = prior.itsLp.ptr<float>(0);
-        const float * __restrict const realRData = real(itsR).ptr<float>(0);
-        const float * __restrict const imagRData = imag(itsR).ptr<float>(0);
-        const float * __restrict const priorRealRData = real(prior.itsR).ptr<float>(0);
-        const float * __restrict const priorImagRData = imag(prior.itsR).ptr<float>(0);
+        const float * __restrict const rData = itsR.ptr<float>(0);
+        const float * __restrict const priorRData = prior.itsR.ptr<float>(0);
         float * __restrict const phaseData = itsPhase.ptr<float>(0);
 
         const int N = itsLp.rows * itsLp.cols;
         for (int i = 0; i < N; i++) {
             float lp = lpData[i];
             float priorLp = priorLpData[i];
-            float realR = realRData[i];
-            float imagR = imagRData[i];
-            float priorRealR = priorRealRData[i];
-            float priorImagR = priorImagRData[i];
+            float realR = rData[2 * i];
+            float imagR = rData[2 * i + 1];
+            float priorRealR = priorRData[2 * i];
+            float priorImagR = priorRData[2 * i + 1];
 
             float temp1 = lp * priorLp + realR * priorRealR + imagR * priorImagR;
             float temp2 = realR * priorLp - priorRealR * lp;
@@ -204,8 +247,7 @@ public:
 #else
         const int N = itsLp.rows * itsLp.cols;
         float * __restrict const lpData = itsLp.ptr<float>(0);
-        const float * __restrict const realRData = real(itsR).ptr<float>(0);
-        const float * __restrict const imagRData = imag(itsR).ptr<float>(0);
+        const float * __restrict const rData = itsR.ptr<float>(0);
         const float * __restrict const realPassData = itsRealPass.ptr<float>(0);
         const float * __restrict const imagPassData = itsImagPass.ptr<float>(0);
 
@@ -224,8 +266,8 @@ public:
 
         for (int i = 0; i < N; i++) {
             float lp = lpData[i];
-            float realR = realRData[i];
-            float imagR = imagRData[i];
+            float realR = rData[2 * i];
+            float imagR = rData[2 * i + 1];
 
             float amplitude = sqrtf(realR * realR + imagR * imagR + lp * lp);
             amplitudeData[i] = amplitude;
@@ -257,8 +299,8 @@ public:
             float cosPhaseDiff = cosf(magV2);
             float sinPhaseDiff = sinf(magV2);
 
-            float realR = realRData[i];
-            float imagR = imagRData[i];
+            float realR = rData[2 * i];
+            float imagR = rData[2 * i + 1];
 
             float pair = realR * cosNormalized + imagR * sinNormalized;
             pair = safe_divide(pair, magV);
