@@ -60,16 +60,6 @@ class RieszPyramidLevel {
     CompExpMat itsRealPass;            // per-level filter state maintained
     CompExpMat itsImagPass;            // across frames
 
-    // Write into result the element-wise inverse cosine of X.
-    //
-    static void arcCosX(const cv::Mat &X, cv::Mat &result) {
-        assert(X.isContinuous() && result.isContinuous());
-        const float *const pX =      X.ptr<float>(0);
-        float *const pResult  = result.ptr<float>(0);
-        const int count = X.rows * X.cols;
-        for (int i = 0; i < count; ++i) pResult[i] = acos(pX[i]);
-    }
-
     // Write into result the element-wise cosines and sines of X.
     //
     static void cosSinX(const cv::Mat &X, CompExpMat &result)
@@ -78,9 +68,9 @@ class RieszPyramidLevel {
         cos(result) = cv::Mat::zeros(X.size(), CV_32F);
         sin(result) = cv::Mat::zeros(X.size(), CV_32F);
         assert(cos(result).isContinuous() && sin(result).isContinuous());
-        const float *const pX =           X.ptr<float>(0);
-        float *const pCosX    = cos(result).ptr<float>(0);
-        float *const pSinX    = sin(result).ptr<float>(0);
+        const float * __restrict const pX =           X.ptr<float>(0);
+        float * __restrict const pCosX    = cos(result).ptr<float>(0);
+        float * __restrict const pSinX    = sin(result).ptr<float>(0);
         const int count = X.rows * X.cols;
         for (int i = 0; i < count; ++i) {
             pCosX[i] = cos(pX[i]);
@@ -151,7 +141,16 @@ public:
     	return itsLp;
     }
 
+private:
+    static float safe_divide(float dividend, float divisor) __attribute__((always_inline)) {
+        if (divisor == 0.0 || divisor == -0.0)
+            return 1;
+        return dividend/divisor;
+    }
+
+public:
     void unwrapOrientPhase(const RieszPyramidLevel &prior) {
+#if 0
         cv::Mat temp1
             =      itsLp.mul(prior.itsLp)
             + real(itsR).mul(real(prior.itsR))
@@ -164,6 +163,7 @@ public:
             - imag(prior.itsR).mul(itsLp);
         cv::Mat tempP  = temp2.mul(temp2) + temp3.mul(temp3);
         cv::Mat phi    = tempP            + temp1.mul(temp1);
+
         cv::sqrt(phi, phi);
         cv::divide(temp1, phi, temp1);
         arcCosX(temp1, phi);
@@ -172,6 +172,45 @@ public:
         cv::divide(temp3, tempP, temp3);
         cos(itsPhase) = temp2.mul(phi);
         sin(itsPhase) = temp3.mul(phi);
+#else
+        assert(itsLp.isContinuous() && real(itsR).isContinuous() && imag(itsR).isContinuous()
+               && cos(itsPhase).isContinuous() && sin(itsPhase).isContinuous());
+
+        const float * __restrict const lpData = itsLp.ptr<float>(0);
+        const float * __restrict const priorLpData = prior.itsLp.ptr<float>(0);
+        const float * __restrict const realRData = real(itsR).ptr<float>(0);
+        const float * __restrict const imagRData = imag(itsR).ptr<float>(0);
+        const float * __restrict const priorRealRData = real(prior.itsR).ptr<float>(0);
+        const float * __restrict const priorImagRData = imag(prior.itsR).ptr<float>(0);
+        float * __restrict const cosPhaseData = cos(itsPhase).ptr<float>(0);
+        float * __restrict const sinPhaseData = sin(itsPhase).ptr<float>(0);
+
+        const int N = itsLp.rows * itsLp.cols;
+        for (int i = 0; i < N; i++) {
+            float lp = lpData[i];
+            float priorLp = priorLpData[i];
+            float realR = realRData[i];
+            float imagR = imagRData[i];
+            float priorRealR = priorRealRData[i];
+            float priorImagR = priorImagRData[i];
+
+            float temp1 = lp * priorLp + realR * priorRealR + imagR * priorImagR;
+            float temp2 = realR * priorLp - priorRealR * lp;
+            float temp3 = imagR * priorLp - priorImagR * lp;
+            float tempP = temp2 * temp2 + temp3 * temp3;
+            float phi = tempP + temp1 * temp1;
+
+            phi = sqrt(phi);
+            temp1 = safe_divide(temp1, phi);
+            phi = acos(temp1);
+            tempP = sqrtf(tempP);
+            temp2 = safe_divide(temp2, tempP);
+            temp3 = safe_divide(temp3, tempP);
+
+            cosPhaseData[i] = temp2 * phi;
+            sinPhaseData[i] = temp3 * phi;
+        }
+#endif
     }
 
     // Multipy the phase difference in this level by alpha but only up to
