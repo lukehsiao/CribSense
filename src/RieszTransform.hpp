@@ -15,10 +15,9 @@ class RieszTemporalFilter {
     RieszTemporalFilter(const RieszTemporalFilter &);
 
 public:
-
     double itsFrequency;
-    std::vector<double> itsA;
-    std::vector<double> itsB;
+    double itsA[2];
+    double itsB[2];
 
     // Compute this filter's Butterworth coefficients for the sampling
     // frequency, fps (frames per second).
@@ -26,10 +25,19 @@ public:
     void computeCoefficients(double halfFps)
     {
         const double Wn = itsFrequency / halfFps;
-        butterworth(1, Wn, itsA, itsB);
+
+        std::vector<double> A;
+        std::vector<double> B;
+        butterworth(1, Wn, A, B);
+
+        assert(A.size() == 2 && B.size() == 2);
+        itsA[0] = A[0];
+        itsA[1] = A[1];
+        itsB[0] = B[0];
+        itsB[1] = B[1];
     }
 
-    void passEach(cv::Mat &result,
+    void pass(cv::Mat &result,
                   const cv::Mat &phase,
                   const cv::Mat &prior) const {
         result
@@ -37,12 +45,6 @@ public:
             + itsB[1] * prior
             - itsA[1] * result;
         result /= itsA[0];
-    }
-    void pass(CompExpMat &result,
-              const CompExpMat &phase,
-              const CompExpMat &prior) const {
-        passEach(cos(result), cos(phase), cos(prior));
-        passEach(sin(result), sin(phase), sin(prior));
     }
 
     RieszTemporalFilter(double f): itsFrequency(f), itsA(), itsB() {}
@@ -56,21 +58,18 @@ class RieszPyramidLevel {
 
     cv::Mat itsLp;                     // the frame scaled to this octave
     ComplexMat itsR;                   // the transform
-    CompExpMat itsPhase;               // the amplified result
-    CompExpMat itsRealPass;            // per-level filter state maintained
-    CompExpMat itsImagPass;            // across frames
+    cv::Mat itsPhase;                  // the amplified result
+    cv::Mat itsRealPass;               // per-level filter state maintained
+    cv::Mat itsImagPass;               // across frames
 
 public:
     // note: this will be called after the first call to build(), which
     // sets itsLp
     void initialize() {
     	const cv::Size size = itsLp.size();
-        cos(itsPhase)    = cv::Mat::zeros(size, CV_32F);
-        sin(itsPhase)    = cv::Mat::zeros(size, CV_32F);
-        cos(itsRealPass) = cv::Mat::zeros(size, CV_32F);
-        sin(itsRealPass) = cv::Mat::zeros(size, CV_32F);
-        cos(itsImagPass) = cv::Mat::zeros(size, CV_32F);
-        sin(itsImagPass) = cv::Mat::zeros(size, CV_32F);
+        itsPhase = cv::Mat::zeros(size, CV_32FC2);
+        itsRealPass = cv::Mat::zeros(size, CV_32FC2);
+        itsImagPass = cv::Mat::zeros(size, CV_32FC2);
     }
 
     void build(const cv::Mat &octave) {
@@ -85,8 +84,7 @@ public:
     	/**/   current.itsLp      .copyTo(        itsLp   );
         real ( current.itsR     ) .copyTo( real ( itsR     ));
         imag ( current.itsR     ) .copyTo( imag ( itsR     ));
-        cos  ( current.itsPhase ) .copyTo( cos  ( itsPhase ));
-        sin  ( current.itsPhase ) .copyTo( sin  ( itsPhase ));
+               current.itsPhase   .copyTo(        itsPhase );
     }
 
     void filter(const RieszTemporalFilter& hiCut, const RieszTemporalFilter& loCut, RieszPyramidLevel& prior) {
@@ -131,7 +129,7 @@ public:
         sin(itsPhase) = temp3.mul(phi);
 #else
         assert(itsLp.isContinuous() && real(itsR).isContinuous() && imag(itsR).isContinuous()
-               && cos(itsPhase).isContinuous() && sin(itsPhase).isContinuous());
+               && itsPhase.isContinuous());
 
         const float * __restrict const lpData = itsLp.ptr<float>(0);
         const float * __restrict const priorLpData = prior.itsLp.ptr<float>(0);
@@ -139,8 +137,7 @@ public:
         const float * __restrict const imagRData = imag(itsR).ptr<float>(0);
         const float * __restrict const priorRealRData = real(prior.itsR).ptr<float>(0);
         const float * __restrict const priorImagRData = imag(prior.itsR).ptr<float>(0);
-        float * __restrict const cosPhaseData = cos(itsPhase).ptr<float>(0);
-        float * __restrict const sinPhaseData = sin(itsPhase).ptr<float>(0);
+        float * __restrict const phaseData = itsPhase.ptr<float>(0);
 
         const int N = itsLp.rows * itsLp.cols;
         for (int i = 0; i < N; i++) {
@@ -164,8 +161,8 @@ public:
             temp2 = safe_divide(temp2, tempP);
             temp3 = safe_divide(temp3, tempP);
 
-            cosPhaseData[i] = temp2 * phi;
-            sinPhaseData[i] = temp3 * phi;
+            phaseData[2 * i] = temp2 * phi;
+            phaseData[2 * i + 1] = temp3 * phi;
         }
 #endif
     }
@@ -209,10 +206,8 @@ public:
         float * __restrict const lpData = itsLp.ptr<float>(0);
         const float * __restrict const realRData = real(itsR).ptr<float>(0);
         const float * __restrict const imagRData = imag(itsR).ptr<float>(0);
-        const float * __restrict const cosRealPassData = cos(itsRealPass).ptr<float>(0);
-        const float * __restrict const sinRealPassData = sin(itsRealPass).ptr<float>(0);
-        const float * __restrict const cosImagPassData = cos(itsImagPass).ptr<float>(0);
-        const float * __restrict const sinImagPassData = sin(itsImagPass).ptr<float>(0);
+        const float * __restrict const realPassData = itsRealPass.ptr<float>(0);
+        const float * __restrict const imagPassData = itsImagPass.ptr<float>(0);
 
         // Note: we store the first part of the algorithm into a cv::Mat
         // to be able to run cv::sepFilter2D (which uses DFT if the kernel is
@@ -235,8 +230,8 @@ public:
             float amplitude = sqrtf(realR * realR + imagR * imagR + lp * lp);
             amplitudeData[i] = amplitude;
 
-            float cosChange = cosRealPassData[i] - cosImagPassData[i];
-            float sinChange = sinRealPassData[i] - sinImagPassData[i];
+            float cosChange = realPassData[2 * i] - imagPassData[2 * i];
+            float sinChange = realPassData[2 * i + 1] - imagPassData[2 * i + 1];
 
             float cosNormalized = cosChange * amplitude;
             float sinNormalized = sinChange * amplitude;
