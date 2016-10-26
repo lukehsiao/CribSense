@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <complex>
-
+#include <stdexcept>
 
 // An ordering on complex that lets real roots dominate.
 //

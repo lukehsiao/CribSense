@@ -159,7 +159,6 @@ cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
     return rt->transform(frame);
 }
 
-
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
 //
@@ -173,7 +172,6 @@ static int batch(const CommandLine &cl)
     // TODO: Parameterize this as commandline params or config file
     int erode = 3;
     int diff_threshold = 10;
-
 
     time_t start, end;
     time(&start);
