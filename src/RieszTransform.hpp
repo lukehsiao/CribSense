@@ -60,30 +60,6 @@ class RieszPyramidLevel {
     CompExpMat itsRealPass;            // per-level filter state maintained
     CompExpMat itsImagPass;            // across frames
 
-    // Write into result the element-wise cosines and sines of X.
-    //
-    static void cosSinX(const cv::Mat &X, CompExpMat &result)
-    {
-        assert(X.isContinuous());
-        cos(result) = cv::Mat::zeros(X.size(), CV_32F);
-        sin(result) = cv::Mat::zeros(X.size(), CV_32F);
-        assert(cos(result).isContinuous() && sin(result).isContinuous());
-        const float * __restrict const pX =           X.ptr<float>(0);
-        float * __restrict const pCosX    = cos(result).ptr<float>(0);
-        float * __restrict const pSinX    = sin(result).ptr<float>(0);
-        const int count = X.rows * X.cols;
-        for (int i = 0; i < count; ++i) {
-            pCosX[i] = cos(pX[i]);
-            pSinX[i] = sin(pX[i]);
-        }
-    }
-
-    cv::Mat rms() {
-        cv::Mat result = square(itsR) + itsLp.mul(itsLp);
-        cv::sqrt(result, result);
-        return result;
-    }
-
 public:
     // note: this will be called after the first call to build(), which
     // sets itsLp
@@ -198,14 +174,17 @@ public:
     // some ceiling threshold.
     //
     void amplify(double alpha, double threshold) {
-        CompExpMat temp;
-
-        // normalize step
         static const double sigma = 3.0;
         static const int aperture = 1 + 4 * sigma;
         static const cv::Mat kernel
             = cv::getGaussianKernel(aperture, sigma, CV_32F);
-        cv::Mat amplitude = rms();
+#if 0
+        CompExpMat temp;
+
+        // normalize step
+        cv::Mat amplitude = square(itsR) + itsLp.mul(itsLp);
+        cv::sqrt(amplitude, amplitude);
+
         const CompExpMat change = itsRealPass - itsImagPass;
         cos(temp) = cos(change).mul(amplitude);
         sin(temp) = sin(change).mul(amplitude);
@@ -225,6 +204,73 @@ public:
         cv::Mat pair = real(itsR).mul(cos(temp)) + imag(itsR).mul(sin(temp));
         cv::divide(pair, MagV, pair);
         itsLp = itsLp.mul(cos(phaseDiff)) - pair.mul(sin(phaseDiff));
+#else
+        const int N = itsLp.rows * itsLp.cols;
+        float * __restrict const lpData = itsLp.ptr<float>(0);
+        const float * __restrict const realRData = real(itsR).ptr<float>(0);
+        const float * __restrict const imagRData = imag(itsR).ptr<float>(0);
+        const float * __restrict const cosRealPassData = cos(itsRealPass).ptr<float>(0);
+        const float * __restrict const sinRealPassData = sin(itsRealPass).ptr<float>(0);
+        const float * __restrict const cosImagPassData = cos(itsImagPass).ptr<float>(0);
+        const float * __restrict const sinImagPassData = sin(itsImagPass).ptr<float>(0);
+
+        // Note: we store the first part of the algorithm into a cv::Mat
+        // to be able to run cv::sepFilter2D (which uses DFT if the kernel is
+        // big enough)
+        // Note 2: normalized is a complex matrix, hence 32FC2
+        // for our purpose it does not matter that it holds complex numbers,
+        // because we work on real and imaginary parts separately
+        cv::Mat normalized(itsLp.rows, itsLp.cols, CV_32FC2);
+        cv::Mat amplitude(itsLp.rows, itsLp.cols, CV_32F);
+
+        // note: data is manipulated by opencv, so no restrict here
+        float * const normalizedData = normalized.ptr<float>(0);
+        float * const amplitudeData = amplitude.ptr<float>(0);
+
+        for (int i = 0; i < N; i++) {
+            float lp = lpData[i];
+            float realR = realRData[i];
+            float imagR = imagRData[i];
+
+            float amplitude = sqrtf(realR * realR + imagR * imagR + lp * lp);
+            amplitudeData[i] = amplitude;
+
+            float cosChange = cosRealPassData[i] - cosImagPassData[i];
+            float sinChange = sinRealPassData[i] - sinImagPassData[i];
+
+            float cosNormalized = cosChange * amplitude;
+            float sinNormalized = sinChange * amplitude;
+
+            normalizedData[2 * i] = cosNormalized;
+            normalizedData[2 * i + 1] = sinNormalized;
+        }
+        cv::sepFilter2D(normalized, normalized, -1, kernel, kernel);
+        cv::sepFilter2D(amplitude, amplitude, -1, kernel, kernel);
+
+        for (int i = 0; i < N; i++) {
+            float amplitude = amplitudeData[i];
+            float cosNormalized = safe_divide(normalizedData[2 * i], amplitude);
+            float sinNormalized = safe_divide(normalizedData[2 * i + 1], amplitude);
+
+            float magV = cosNormalized * cosNormalized + sinNormalized * sinNormalized;
+            magV = sqrtf(magV);
+
+            float magV2 = magV * alpha;
+            if (magV2 > threshold)
+                magV2 = threshold;
+
+            float cosPhaseDiff = cosf(magV2);
+            float sinPhaseDiff = sinf(magV2);
+
+            float realR = realRData[i];
+            float imagR = imagRData[i];
+
+            float pair = realR * cosNormalized + imagR * sinNormalized;
+            pair = safe_divide(pair, magV);
+
+            lpData[i] = lpData[i] * cosPhaseDiff - pair * sinPhaseDiff;
+        }
+#endif
     }
 
     // Default the constructors because these are in a vector<>.
