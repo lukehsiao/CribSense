@@ -84,25 +84,6 @@ class RieszPyramidLevel {
         return result;
     }
 
-    // Normalize the phase change of this level into result.
-    //
-    void normalize(CompExpMat &result) {
-        static const double sigma = 3.0;
-        static const int aperture = 1 + 4 * sigma;
-        static const cv::Mat kernel
-            = cv::getGaussianKernel(aperture, sigma, CV_32F);
-        cv::Mat amplitude = rms();
-        const CompExpMat change = itsRealPass - itsImagPass;
-        cos(result) = cos(change).mul(amplitude);
-        sin(result) = sin(change).mul(amplitude);
-        cv::sepFilter2D(cos(result), cos(result), -1, kernel, kernel);
-        cv::sepFilter2D(sin(result), sin(result), -1, kernel, kernel);
-        cv::Mat temp;
-        cv::sepFilter2D(amplitude, temp, -1, kernel, kernel);
-        cv::divide(cos(result), temp, cos(result));
-        cv::divide(sin(result), temp, sin(result));
-    }
-
 public:
     // note: this will be called after the first call to build(), which
     // sets itsLp
@@ -217,7 +198,25 @@ public:
     // some ceiling threshold.
     //
     void amplify(double alpha, double threshold) {
-        CompExpMat temp; normalize(temp);
+        CompExpMat temp;
+
+        // normalize step
+        static const double sigma = 3.0;
+        static const int aperture = 1 + 4 * sigma;
+        static const cv::Mat kernel
+            = cv::getGaussianKernel(aperture, sigma, CV_32F);
+        cv::Mat amplitude = rms();
+        const CompExpMat change = itsRealPass - itsImagPass;
+        cos(temp) = cos(change).mul(amplitude);
+        sin(temp) = sin(change).mul(amplitude);
+        cv::sepFilter2D(cos(temp), cos(temp), -1, kernel, kernel);
+        cv::sepFilter2D(sin(temp), sin(temp), -1, kernel, kernel);
+        cv::Mat temp2;
+        cv::sepFilter2D(amplitude, temp2, -1, kernel, kernel);
+        cv::divide(cos(temp), temp2, cos(temp));
+        cv::divide(sin(temp), temp2, sin(temp));
+        // end normalize step
+
         cv::Mat MagV = square(temp);
         cv::sqrt(MagV, MagV);
         cv::Mat MagV2 = MagV * alpha;
