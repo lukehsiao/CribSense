@@ -65,13 +65,14 @@ static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
 }
 
 /**
- * Launch rt.transform for the given RieszTransform and the given frame.
+ * Given a black/white evaluation frame (output from DifferentialCollins), returns
+ * the number of pixels that have changed, so long as a certain threshold is reached.
+ * @param  evaluation      Black & White evaluation image
+ * @param  minimumChanges  Minimum number of pixels that must have changed.
+ * @param  minimumDuration Number of frames that must reach the threshold before
+ *                         being marked valid.
+ * @return                 Number of pixels that have changed that frame, if thresholds are reached
  */
-cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
-{
-    return rt->transform(frame);
-}
-
 int isValidMotion(cv::Mat evaluation, int minimumChanges, int minimumDuration = 1) {
     int numberOfChanges = 0;
     cv::Rect rectangle(evaluation.cols, evaluation.rows, 0, 0);
@@ -106,13 +107,21 @@ int isValidMotion(cv::Mat evaluation, int minimumChanges, int minimumDuration = 
     return 0;
 }
 
-cv::Mat DifferentialCollins(cv::Mat *images, int erode, int threshold) {
+/**
+ * Use simply image diffs over 3 frames to create a black/white evaluation
+ * image where white pixels indication pixels that have changed.
+ * @param  images    Array of 3 images.
+ * @param  erode     Dimension of kernel to erode by after thresholding
+ * @param  threshold Difference needed before registering a pixel as changed.
+ * @param  viewDiffs Optionally open the diff image for debugging purposes.
+ * @return           A black and white evaluation image.
+ */
+cv::Mat DifferentialCollins(cv::Mat *images, int erode, int threshold, bool viewDiffs = false) {
     cv::Mat h_d1;
     cv::Mat h_d2;
     cv::Mat evaluation;
     cv::Mat erode_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erode,erode));
 
-    // Convert to GrayScale
     try {
         // Check differences
         cv::absdiff(images[0], images[2], h_d1);
@@ -126,19 +135,30 @@ cv::Mat DifferentialCollins(cv::Mat *images, int erode, int threshold) {
         cv::erode(evaluation, evaluation, erode_kernel);
     }
     catch(cv::Exception &ex) {
-        printf("[error] OpenCV Exception %s", ex.what());
+        printf("[error] OpenCV Exception in DifferentialCollins: %s", ex.what());
     }
-    try {
-        cv::imshow( "Evaluation", evaluation );                  // Show our image inside it.
-        cv::waitKey(0);
-        cv::destroyAllWindows();
-    }
-    catch(cv::Exception &ex) {
-        printf("[error] OpenCV Exception in display %s", ex.what());
-        return 1;
+    if (viewDiffs) {
+      try {
+          cv::imshow( "Evaluation", evaluation );                  // Show our image inside it.
+          cv::waitKey(0);
+          cv::destroyAllWindows();
+      }
+      catch(cv::Exception &ex) {
+          printf("[error] OpenCV Exception in display %s", ex.what());
+          return 1;
+      }
     }
     return evaluation;
 }
+
+/**
+ * Launch rt.transform for the given RieszTransform and the given frame.
+ */
+cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
+{
+    return rt->transform(frame);
+}
+
 
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
@@ -147,15 +167,12 @@ static int batch(const CommandLine &cl)
 {
     // Buffer of 3 frames for use with the DifferentialCollins algorithm.
     cv::Mat frameBuffer[3];
-    // frameBuffer[0] = Mat::zeros(640, 480, CV_8UC1);
-    // frameBuffer[1] = Mat::zeros(640, 480, CV_8UC1);
-    // frameBuffer[2] = Mat::zeros(640, 480, CV_8UC1);
     int frameCount = 0;
 
     // Parameters for the DifferentialCollins algorithm
     // TODO: Parameterize this as commandline params or config file
-    int erode = 2;
-    int diff_threshold = 9;
+    int erode = 3;
+    int diff_threshold = 10;
 
 
     time_t start, end;
@@ -181,10 +198,10 @@ static int batch(const CommandLine &cl)
             cv::Mat frame; const bool more = source.read(frame);
             if (frame.empty()) {
                 if (!more) {
-                  time(&end);
-                  double diff_t = difftime(end, start);
-                  printf("[info] time: %f\n", diff_t);
-                  return 0;
+                    time(&end);
+                    double diff_t = difftime(end, start);
+                    printf("[info] time: %f\n", diff_t);
+                    return 0;
                 }
             } else {
                 if (frameCount < 3) {frameCount++;} // track when buffer is full
@@ -202,22 +219,23 @@ static int batch(const CommandLine &cl)
                 // recombine results and output
                 cv::Mat result;
                 cv::Mat sections[] = {
-                  t_left.get(), t_mid.get(), t_right.get(),
+                    t_left.get(), t_mid.get(), t_right.get(),
                 };
                 cv::hconcat(sections, 3, result);
-                // Update all the images in the ImageVector
-                frameBuffer[0] = frameBuffer[1].clone();
-                frameBuffer[1] = frameBuffer[2].clone();
-                frameBuffer[2] = result.clone();
-                cv::cvtColor(frameBuffer[2], frameBuffer[2], CV_BGR2GRAY);
-
-
                 sink.write(result);
+
+                // Update all the images in the ImageVector
+                frameBuffer[0] = frameBuffer[1];
+                frameBuffer[1] = frameBuffer[2];
+                frameBuffer[2] = result.clone();
+
+                // convert to Grayscale
+                cv::cvtColor(frameBuffer[2], frameBuffer[2], CV_BGR2GRAY);
 
                 // Once all of the 3 frames are filled, check for motion;
                 if (frameCount >= 3) {
                     cv::Mat evaluation = DifferentialCollins(frameBuffer, erode, diff_threshold);
-                    printf("[info] Motion: %d\n", isValidMotion(evaluation, 2));
+                    // printf("%d,", isValidMotion(evaluation, 2));
                 }
             }
         }
