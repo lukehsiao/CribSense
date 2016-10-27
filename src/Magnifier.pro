@@ -19,12 +19,17 @@ HEADERS += \
     RieszTransform.hpp \
     ComplexMat.hpp \
     Butterworth.hpp \
+    WorkerThread.hpp \
+    INIReader.h \
+    ini.h \
     #
 
 SOURCES += \
     CommandLine.cpp \
     MainDialog.cpp \
     Butterworth.cpp \
+    INIReader.cpp \
+    ini.c \
     main.cpp \
     #
 

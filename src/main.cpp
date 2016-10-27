@@ -3,6 +3,7 @@
 #include "VideoSource.hpp"
 #include "WorkerThread.hpp"
 #include <future>
+#include "INIReader.h"
 
 // Return true iff can write cl.outFile to work around VideoWriter.
 //
@@ -249,19 +250,32 @@ static int batch(const CommandLine &cl)
 int main(int argc, char *argv[])
 {
     QApplication qApplication(argc, argv);
-    const CommandLine cl(argc, argv);
-    if (cl.ok) {
-        if (cl.gui) {
-            MainDialog window(cl);
-            if (window.ok()) {
-                window.show();
-                return qApplication.exec();
-            }
-        } else {
-            printf("[info] starting batch processing.\n");
-            if (cl.sourceCount && cl.sinkCount) return batch(cl);
-            if (cl.help) return 0;
-        }
+    INIReader reader("config.ini");
+
+    if (reader.ParseError() < 0) {
+      printf("[error] Cannot load config.ini\n");
+      return 1;
     }
-    return 1;
+
+    std::cout << "Config loaded from 'config.ini': version="
+              << reader.GetInteger("motion", "version", -1) << ", amplify="
+              << reader.GetInteger("magnification", "amplify", -1) << ", low-cutoff="
+              << reader.GetReal("magnification", "low-cutoff", -1) << "\n";
+    return 0;
+
+    // const CommandLine cl(argc, argv);
+    // if (cl.ok) {
+    //     if (cl.gui) {
+    //         MainDialog window(cl);
+    //         if (window.ok()) {
+    //             window.show();
+    //             return qApplication.exec();
+    //         }
+    //     } else {
+    //         printf("[info] starting batch processing.\n");
+    //         if (cl.sourceCount && cl.sinkCount) return batch(cl);
+    //         if (cl.help) return 0;
+    //     }
+    // }
+    // return 1;
 }
