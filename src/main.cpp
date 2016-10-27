@@ -1,6 +1,7 @@
 #include "MainDialog.hpp"
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
+#include "WorkerThread.hpp"
 #include <future>
 
 // Return true iff can write cl.outFile to work around VideoWriter.
@@ -185,12 +186,19 @@ static int batch(const CommandLine &cl)
             fps = cl.fps;
         }
         const cv::Size size = source.frameSize();
+
         cv::VideoWriter sink(cl.outFile, codec, fps, size);
 
         // Create 3 RieszTransforms. One for each section.
-        RieszTransform rt_left, rt_mid, rt_right;
-        cl.apply(rt_left); cl.apply(rt_mid); cl.apply(rt_right);
-        rt_left.fps(fps); rt_mid.fps(fps); rt_right.fps(fps);
+        static const int SPLIT = 3;
+        RieszTransform rt[SPLIT];
+        WorkerThread<cv::Mat, RieszTransform*, cv::Mat> thread[SPLIT];
+
+        for (int i = 0; i < SPLIT; i++) {
+            cl.apply(rt[i]);
+            rt[i].fps(fps);
+        }
+
         for (;;) {
             // for each frame
             cv::Mat frame; const bool more = source.read(frame);
@@ -205,21 +213,25 @@ static int batch(const CommandLine &cl)
                 if (frameCount < 3) {frameCount++;} // track when buffer is full
                 // Split a single 640 x 480 frame into equal sections, 1 section
                 // for each thread to process
-                const cv::Mat left = frame(cv::Range(0, frame.rows), cv::Range(0, frame.cols / 3));
-                const cv::Mat mid = frame(cv::Range(0, frame.rows), cv::Range(frame.cols / 3, frame.cols * 2 / 3));
-                const cv::Mat right = frame(cv::Range(0, frame.rows), cv::Range(frame.cols * 2 / 3, frame.cols));
-
                 // Run each transform independently.
-                auto t_left = std::async(std::launch::async, do_transforms, &rt_left, left);
-                auto t_mid = std::async(std::launch::async, do_transforms, &rt_mid, mid);
-                auto t_right = std::async(std::launch::async, do_transforms, &rt_right, right);
+
+                std::future<cv::Mat> futures[SPLIT];
+                cv::Mat in_sections[SPLIT];
+                cv::Mat out_sections[SPLIT];
+
+                for (int i = 0; i < SPLIT; i++) {
+                    auto rowRange = cv::Range(frame.rows * i / SPLIT, (i == SPLIT - 1) ? frame.rows : (frame.rows * (i+1) / 3));
+                    auto colRange = cv::Range(0, frame.cols);
+                    in_sections[i] = frame(rowRange, colRange);
+                    futures[i] = thread[i].push(do_transforms, &rt[i], in_sections[i]);
+                }
 
                 // recombine results and output
+                for (int i = 0; i < SPLIT; i++) {
+                    out_sections[i] = futures[i].get();
+                }
                 cv::Mat result;
-                cv::Mat sections[] = {
-                    t_left.get(), t_mid.get(), t_right.get(),
-                };
-                cv::hconcat(sections, 3, result);
+                cv::vconcat(out_sections, 3, result);
                 sink.write(result);
 
                 // Update all the images in the ImageVector
