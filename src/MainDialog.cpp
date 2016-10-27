@@ -198,47 +198,47 @@ bool MainDialog::doOneFrame()
     if (inFrame.empty()) {
         more = doEmptyFrame(more);
     } else {
-		cv::Mat hsvFrame;
-		cv::Mat maskFrame;
-		cv::Mat resultFrame;
-		cv::cvtColor(inFrame, hsvFrame, CV_BGR2HSV);
-		//cv::inRange(hsvFrame, cv::Scalar(17, 0, 0), cv::Scalar(21, 245, 245), maskFrame);	//color filter for baby blanket
-		cv::inRange(hsvFrame, cv::Scalar(33, 100, 0), cv::Scalar(35, 245, 255), maskFrame);
-		cv::bitwise_and(inFrame, inFrame, resultFrame, maskFrame);
-		
-		cv::Rect bounding_box;
-		double largest_area = 0;
-		int largest_contour = 0;
-		std::vector<std::vector<cv::Point>> contours;
-		findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+        cv::Mat hsvFrame;
+        cv::Mat maskFrame;
+        cv::Mat resultFrame;
+        cv::cvtColor(inFrame, hsvFrame, CV_BGR2HSV);
+        //cv::inRange(hsvFrame, cv::Scalar(17, 0, 0), cv::Scalar(21, 245, 245), maskFrame);    //color filter for baby blanket
+        cv::inRange(hsvFrame, cv::Scalar(33, 100, 0), cv::Scalar(35, 245, 255), maskFrame);
+        cv::bitwise_and(inFrame, inFrame, resultFrame, maskFrame);
+        
+        cv::Rect bounding_box;
+        double largest_area = 0;
+        int largest_contour = 0;
+        std::vector<std::vector<cv::Point>> contours;
+        findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
-		for(unsigned int i = 0; i < contours.size(); i++ )	{
-			double area = cv::contourArea(contours[i], false); 
-			if(area > largest_area){
-				largest_area = area;
-				largest_contour = i;               			
-			}
-		}
-		
-		if (!contours.empty())	{
-			bounding_box = cv::boundingRect(contours[largest_contour]);
-			cv::rectangle(resultFrame, bounding_box, cv::Scalar(0, 255, 0), 2, 8, 0);	//draw box
-			noBoundingBox = false;
-		}
-		itsInputWidget.show(resultFrame);
-		
-		if (!beenCropped)	{
-			cropBox = bounding_box;
-			beenCropped = true;
-		}
-		
-		if (!noBoundingBox)	{
-			inFrame = inFrame(cropBox);
-		}
-		
-		cv::Mat outFrame = itsTransform->transform(inFrame);		
+        for(unsigned int i = 0; i < contours.size(); i++ ) {
+            double area = cv::contourArea(contours[i], false); 
+            if(area > largest_area){
+                largest_area = area;
+                largest_contour = i;
+            }
+        }
+        
+        if (!contours.empty()) {
+            bounding_box = cv::boundingRect(contours[largest_contour]);
+            cv::rectangle(resultFrame, bounding_box, cv::Scalar(0, 255, 0), 2, 8, 0);    //draw box
+            
+            if (!attemptedCrop) {
+                cropBox = bounding_box;
+                canCrop = true;
+            }
+        }
+        itsInputWidget.show(resultFrame);
+        attemptedCrop = true;
+        
+        if (canCrop) {
+            inFrame = inFrame(cropBox);
+        }
+        
+        cv::Mat outFrame = itsTransform->transform(inFrame);
         //itsInputWidget.show(inFrame);
-		itsOutputWidget.show(outFrame);
+        itsOutputWidget.show(outFrame);
         if (itsOutput.itsSink) itsOutput.itsSink->write(outFrame);
     }
     if (itsBar) itsBar->setValue(1 + itsBar->value());
