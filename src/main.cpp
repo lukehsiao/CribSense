@@ -124,6 +124,8 @@ cv::Mat DifferentialCollins(cv::Mat *images, int erode, int threshold, bool view
     cv::Mat erode_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erode,erode));
 
     // Check differences
+    // NOTE: If further optimization is necessary, we can probably hand-code this
+    // part to expose the loops to the compiler.
     cv::absdiff(images[0], images[2], h_d1);
     cv::absdiff(images[1], images[2], h_d2);
     cv::bitwise_and(h_d1, h_d2, evaluation);
@@ -237,10 +239,6 @@ static int batch(const CommandLine &cl)
                     cv::Mat evaluation = DifferentialCollins(frameBuffer, erode, diff_threshold);
                     // printf("%d,", isValidMotion(evaluation, 2));
                 }
-
-                cv::imshow("original", frame);
-                cv::imshow("result", result);
-                if (cv::waitKey(30) >= 0) break;
             }
         }
     }
