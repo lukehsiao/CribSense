@@ -106,7 +106,6 @@ cv::Rect find_crop(cv::Mat frame)
 //
 static int batch(const CommandLine &cl)
 {
-    const bool adaptiveCrop = true; //flag to enable adaptive cropping
     time_t start, end;
     time(&start);
     VideoSource source(cl.cameraId, cl.inFile);
@@ -122,9 +121,9 @@ static int batch(const CommandLine &cl)
         
         cv::Size size;
         
-        // if adaptiveCrop flag is true, reads the first frame to compute the crop window
+        // if cl.crop flag is true, reads the first frame to compute the crop window
         // the first frame is discarded after use
-        if (adaptiveCrop) {
+        if (cl.crop) {
             cv::Mat firstFrame;
             source.read(firstFrame);
             cropWindow = find_crop(firstFrame);
@@ -156,7 +155,7 @@ static int batch(const CommandLine &cl)
                   return 0;
                 }
             } else {
-                if (adaptiveCrop) {
+                if (cl.crop) {
                     frame = frame(cropWindow);
                 }
                 
