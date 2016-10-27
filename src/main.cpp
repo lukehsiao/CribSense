@@ -152,6 +152,34 @@ cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
     return rt->transform(frame);
 }
 
+cv::Rect find_crop(cv::Mat frame)
+{
+    cv::Mat hsvFrame;
+    cv::Mat maskFrame;
+    cv::cvtColor(frame, hsvFrame, CV_BGR2HSV);
+    //cv::inRange(hsvFrame, cv::Scalar(17, 0, 0), cv::Scalar(21, 245, 245), maskFrame);    //color filter for baby blanket
+    cv::inRange(hsvFrame, cv::Scalar(33, 100, 0), cv::Scalar(35, 245, 255), maskFrame);
+    
+    double largest_area = 0;
+    int largest_contour = 0;
+    std::vector<std::vector<cv::Point>> contours;
+    findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+
+    for(unsigned int i = 0; i < contours.size(); i++ ) {
+        double area = cv::contourArea(contours[i], false); 
+        if(area > largest_area){
+            largest_area = area;
+            largest_contour = i;
+        }
+    }
+    
+    if (contours.empty()) {
+        return cv::Rect(0, 0, frame.cols, frame.rows);
+    } else {
+        return cv::boundingRect(contours[largest_contour]);
+    }
+}
+
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
 //
@@ -171,13 +199,26 @@ static int batch(const CommandLine &cl)
     VideoSource source(cl.cameraId, cl.inFile);
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
+        cv::Rect cropWindow;
         double fps;
         if (cl.fps < 0) { // if user-sepcifies fps, use that
             fps = measureFpsHack(cl, source);
         } else {
             fps = cl.fps;
         }
-        const cv::Size size = source.frameSize();
+        
+        cv::Size size;
+        
+        // if cl.crop flag is true, reads the first frame to compute the crop window
+        // the first frame is discarded after use
+        if (cl.crop) {
+            cv::Mat firstFrame;
+            source.read(firstFrame);
+            cropWindow = find_crop(firstFrame);
+            size = cropWindow.size();
+        } else {
+            size = source.frameSize();
+        }
 
         cv::VideoWriter sink(cl.outFile, codec, fps, size);
 
@@ -202,7 +243,12 @@ static int batch(const CommandLine &cl)
                     return 0;
                 }
             } else {
+                if (cl.crop) {
+                    frame = frame(cropWindow);
+                }
+                
                 if (frameCount < 3) {frameCount++;} // track when buffer is full
+
                 // Split a single 640 x 480 frame into equal sections, 1 section
                 // for each thread to process
                 // Run each transform independently.

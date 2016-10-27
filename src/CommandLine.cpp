@@ -150,7 +150,8 @@ CommandLine::CommandLine(int ac, char *av[])
     , gui(false)
     , about(false)
     , help(false)
-    , ok(true)                          // Check this before use.
+    , ok(true)           // Check this before use.
+    , crop(false)
 {
     const std::string::size_type n = av0.rfind("/");
     program
@@ -190,6 +191,8 @@ CommandLine::CommandLine(int ac, char *av[])
             std::stringstream ss(av[i]);
             ok = (ss >> threshold) && threshold >= 0 && threshold <= 100;
             if (!ok) std::cerr << thresholdOption(program);
+        } else if ("--crop" == arg) {
+            crop = true;
         } else if ("--repeat" == arg) {
             repeat = true;
         } else if ("--gui" == arg) {
@@ -235,6 +238,7 @@ CommandLine::CommandLine(const MainDialog *md)
     , about(false)
     , help(false)
     , ok(false)                         // Never check this.
+    , crop(false)
 {
     repeat = md->itsRepeat && md->itsRepeat->isChecked();
     if (md->itsSource) {
