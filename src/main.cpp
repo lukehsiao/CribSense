@@ -123,31 +123,21 @@ cv::Mat DifferentialCollins(cv::Mat *images, int erode, int threshold, bool view
     cv::Mat evaluation;
     cv::Mat erode_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erode,erode));
 
-    try {
-        // Check differences
-        cv::absdiff(images[0], images[2], h_d1);
-        cv::absdiff(images[1], images[2], h_d2);
-        cv::bitwise_and(h_d1, h_d2, evaluation);
+    // Check differences
+    cv::absdiff(images[0], images[2], h_d1);
+    cv::absdiff(images[1], images[2], h_d2);
+    cv::bitwise_and(h_d1, h_d2, evaluation);
 
-        // threshold
-        cv::threshold(evaluation, evaluation, threshold, 255, CV_THRESH_BINARY);
+    // threshold
+    cv::threshold(evaluation, evaluation, threshold, 255, CV_THRESH_BINARY);
 
-        // erode
-        cv::erode(evaluation, evaluation, erode_kernel);
-    }
-    catch(cv::Exception &ex) {
-        printf("[error] OpenCV Exception in DifferentialCollins: %s", ex.what());
-    }
+    // erode
+    cv::erode(evaluation, evaluation, erode_kernel);
+
     if (viewDiffs) {
-      try {
-          cv::imshow( "Evaluation", evaluation );                  // Show our image inside it.
-          cv::waitKey(0);
-          cv::destroyAllWindows();
-      }
-      catch(cv::Exception &ex) {
-          printf("[error] OpenCV Exception in display %s", ex.what());
-          return 1;
-      }
+        cv::imshow( "Evaluation", evaluation );                  // Show our image inside it.
+        cv::waitKey(0);
+        cv::destroyAllWindows();
     }
     return evaluation;
 }
