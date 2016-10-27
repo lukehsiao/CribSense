@@ -237,7 +237,7 @@ static int batch(const CommandLine &cl)
                 // Update all the images in the ImageVector
                 frameBuffer[0] = frameBuffer[1];
                 frameBuffer[1] = frameBuffer[2];
-                frameBuffer[2] = result.clone();
+                frameBuffer[2] = result;
 
                 // convert to Grayscale
                 cv::cvtColor(frameBuffer[2], frameBuffer[2], CV_BGR2GRAY);
@@ -247,6 +247,10 @@ static int batch(const CommandLine &cl)
                     cv::Mat evaluation = DifferentialCollins(frameBuffer, erode, diff_threshold);
                     // printf("%d,", isValidMotion(evaluation, 2));
                 }
+
+                cv::imshow("original", frame);
+                cv::imshow("result", result);
+                if (cv::waitKey(30) >= 0) break;
             }
         }
     }
