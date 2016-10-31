@@ -186,7 +186,8 @@ static int batch(const CommandLine &cl)
                 cv::vconcat(out_sections, 3, result);
                 sink.write(result);
 
-                // printf("%d,", detector.isValidMotion(result));
+                // Just ignore this return value for now.
+                detector.isValidMotion(result);
             }
         }
     }

@@ -287,7 +287,7 @@ CommandLine::CommandLine(int ac, char *av[])
 
         showDiff = reader.GetBoolean("motion", "show_diff", false);
 
-        crop = reader.GetBoolean("io", "crop", false);
+        crop = reader.GetBoolean("cropping", "crop", false);
 
         about = reader.GetBoolean("io", "about", false);
         help = reader.GetBoolean("io", "help", false);
