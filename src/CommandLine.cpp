@@ -291,10 +291,14 @@ CommandLine::CommandLine(int ac, char *av[])
     if (sourceCount > 1) {
         std::cerr << program << ": Specify only one of --camera or --input."
                   << std::endl << std::endl;
+        ok = false;
+        return;
     }
     if (sinkCount > 1) {
         std::cerr << program << ": Specify only one --output file."
                   << std::endl << std::endl;
+        ok = false;
+        return;
     }
     if (!(sourceCount && sinkCount)) if (!(about || help)) gui = true;
     if (about && !gui) std::cout << program << acknowlegements() << std::endl;
