@@ -138,6 +138,7 @@ struct CommandLine {
     bool about;                      // True iff --about.
     bool help;                       // True iff --help.
     bool ok;                         // True if (ac, av) parse is valid.
+    bool crop;                       // True if adaptive crop is enabled.
 
     // Return a static string about this program.
     //

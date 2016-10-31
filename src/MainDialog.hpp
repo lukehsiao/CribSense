@@ -149,6 +149,11 @@ class MainDialog : public QDialog {
     QCheckBox *itsRepeat;
     QProgressBar *itsBar;
     QGridLayout itsGrid;
+    
+    //for adaptive cropping
+    bool attemptedCrop = false;
+    bool canCrop = false;
+    cv::Rect cropBox;
 
     MeasureFps itsFps;
 
