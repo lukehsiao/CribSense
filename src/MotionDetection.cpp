@@ -65,7 +65,7 @@ int MotionDetection::isValidMotion(cv::Mat newFrame) {
         }
         else {
             if (duration > 0) {
-              duration--;
+                duration--;
             }
         }
     }
