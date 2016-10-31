@@ -22,6 +22,7 @@ HEADERS += \
     WorkerThread.hpp \
     INIReader.h \
     ini.h \
+    MotionDetection.hpp \
     #
 
 SOURCES += \
@@ -30,6 +31,7 @@ SOURCES += \
     Butterworth.cpp \
     INIReader.cpp \
     ini.c \
+    MotionDetection.cpp \
     main.cpp \
     #
 
