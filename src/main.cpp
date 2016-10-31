@@ -162,11 +162,6 @@ static int batch(const CommandLine &cl)
     cv::Mat frameBuffer[3];
     int frameCount = 0;
 
-    // Parameters for the DifferentialCollins algorithm
-    // TODO: Parameterize this as commandline params or config file
-    int erode = 3;
-    int diff_threshold = 10;
-
     time_t start, end;
     time(&start);
     VideoSource source(cl.cameraId, cl.inFile);
@@ -237,8 +232,8 @@ static int batch(const CommandLine &cl)
 
                 // Once all of the 3 frames are filled, check for motion;
                 if (frameCount >= 3) {
-                    cv::Mat evaluation = DifferentialCollins(frameBuffer, erode, diff_threshold);
-                    // printf("%d,", isValidMotion(evaluation, 2));
+                    cv::Mat evaluation = DifferentialCollins(frameBuffer, cl.erodeDimension, cl.diffThreshold, cl.showDiff);
+                    // printf("%d,", isValidMotion(evaluation, cl.pixelThreshold, cl.motionDuration));
                 }
             }
         }
@@ -250,32 +245,20 @@ static int batch(const CommandLine &cl)
 int main(int argc, char *argv[])
 {
     QApplication qApplication(argc, argv);
-    INIReader reader("config.ini");
 
-    if (reader.ParseError() < 0) {
-      printf("[error] Cannot load config.ini\n");
-      return 1;
+    const CommandLine cl(argc, argv);
+    if (cl.ok) {
+        if (cl.gui) {
+            MainDialog window(cl);
+            if (window.ok()) {
+                window.show();
+                return qApplication.exec();
+            }
+        } else {
+            printf("[info] starting batch processing.\n");
+            if (cl.sourceCount && cl.sinkCount) return batch(cl);
+            if (cl.help) return 0;
+        }
     }
-
-    std::cout << "Config loaded from 'config.ini': version="
-              << reader.GetInteger("motion", "version", -1) << ", amplify="
-              << reader.GetInteger("magnification", "amplify", -1) << ", low-cutoff="
-              << reader.GetReal("magnification", "low-cutoff", -1) << "\n";
-    return 0;
-
-    // const CommandLine cl(argc, argv);
-    // if (cl.ok) {
-    //     if (cl.gui) {
-    //         MainDialog window(cl);
-    //         if (window.ok()) {
-    //             window.show();
-    //             return qApplication.exec();
-    //         }
-    //     } else {
-    //         printf("[info] starting batch processing.\n");
-    //         if (cl.sourceCount && cl.sinkCount) return batch(cl);
-    //         if (cl.help) return 0;
-    //     }
-    // }
-    // return 1;
+    return 1;
 }
