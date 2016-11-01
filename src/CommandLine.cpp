@@ -289,6 +289,15 @@ CommandLine::CommandLine(int ac, char *av[])
 
         crop = reader.GetBoolean("cropping", "crop", false);
 
+        framesToSettle = reader.GetInteger("cropping", "frames_to_settle", 10);
+        ok = framesToSettle && framesToSettle >= 1;
+
+        roiWindow = reader.GetInteger("cropping", "roi_window", 10);
+        ok = roiWindow && roiWindow >= 1;
+
+        roiUpdateInterval = reader.GetInteger("cropping", "roi_update_interval", 100);
+        ok = roiUpdateInterval && roiUpdateInterval >= roiWindow;
+
         about = reader.GetBoolean("io", "about", false);
         help = reader.GetBoolean("io", "help", false);
     }

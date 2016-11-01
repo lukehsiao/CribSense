@@ -3,6 +3,10 @@
 
 #include <opencv2/opencv.hpp>
 #include "CommandLine.hpp"
+#include "RieszTransform.hpp"
+#include "VideoSource.hpp"
+#include "WorkerThread.hpp"
+#include <future>
 
 class MotionDetection {
 
@@ -14,6 +18,9 @@ private:
     bool showDiff;
     int pixelThreshold;
     int motionDuration;
+    unsigned framesToSettle;
+    unsigned roiUpdateInterval;
+    unsigned roiWindow;
 
     /**
      * Use simple image diffs over 3 frames to create a black/white evaulation
@@ -23,6 +30,8 @@ private:
     cv::Mat DifferentialCollins();
 
 public:
+
+    void update(cv::Mat newFrame);
 
     /**
      * Given a new frame of video, update the frame buffer, use the Differential

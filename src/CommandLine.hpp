@@ -127,6 +127,9 @@ struct CommandLine {
     int motionDuration;              // # of frames motion must be detected.
     int pixelThreshold;              // # of pixels that must be different
                                      //   to be flagged as motion.
+    unsigned framesToSettle;
+    unsigned roiUpdateInterval;
+    unsigned roiWindow;
     double amplify;                  // The current amplification.
     double fps;                      // user-specified fps of input video.
     double lowCutoff;                // The low frequency of the bandpass.
