@@ -6,7 +6,8 @@
 
 QT += core gui widgets
 CONFIG += c++11 debug
-QMAKE_CXXFLAGS += -O3 -pthread -march=native -ftree-vectorize
+QMAKE_CXXFLAGS += -O3 -pthread 
+QMAKE_CXXFLAGS += -mfloat-abi=hard -mtune=cortex-a53 -mfpu=crypto-neon-fp-armv8 -funsafe-math-optimizations -fno-trapping-math -fno-signaling-nans
 TARGET = Magnifier
 TEMPLATE = app
 LIBS += -pthread
