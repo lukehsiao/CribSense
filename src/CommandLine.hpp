@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sys/time.h>
+#include "INIReader.h"
 
 class MainDialog;
 class RieszTransform;
@@ -120,11 +121,18 @@ struct CommandLine {
     int cameraId;                    // The camera if not negative.
     int sourceCount;                 // Count of video sources specified.
     int sinkCount;                   // Count of video sinks specified.
+    int erodeDimension;              // Dimention of the erode kernel.
+    int diffThreshold;               // Difference threshold before marking
+                                     //     pixel as changed.
+    int motionDuration;              // # of frames motion must be detected.
+    int pixelThreshold;              // # of pixels that must be different
+                                     //   to be flagged as motion.
     double amplify;                  // The current amplification.
     double fps;                      // user-specified fps of input video.
     double lowCutoff;                // The low frequency of the bandpass.
     double highCutoff;               // The high frequency of the bandpass.
     double threshold;                // The phase threshold as % of pi.
+    bool showDiff;                   // optionally show the diff between frames
     bool repeat;                     // True for looping input file.
     bool gui;                        // True for the GUI controls.
     bool about;                      // True iff --about.

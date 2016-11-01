@@ -141,11 +141,16 @@ CommandLine::CommandLine(int ac, char *av[])
     , cameraId(-1)
     , sourceCount(0)
     , sinkCount(0)
+    , erodeDimension(2)
+    , diffThreshold(5)
+    , motionDuration(1)
+    , pixelThreshold(10)
     , amplify(30.0)
     , fps(-1.0)
     , lowCutoff( MeasureFps::minimumFps() / 4.0)
     , highCutoff(MeasureFps::minimumFps() / 2.0)
     , threshold(25.0)
+    , showDiff(false)
     , repeat(false)
     , gui(false)
     , about(false)
@@ -158,6 +163,10 @@ CommandLine::CommandLine(int ac, char *av[])
         = (n == std::string::npos || n == av0.size() - 1)
         ? av0
         : av0.substr(n + 1);
+
+    bool use_config_file = false;
+    std::string config_path = "";
+
     for (int i = 1; ok && i < ac; ++i) {
         std::stringstream raw(av[i]); std::string arg; raw >> arg;
         if ("--about" == arg) {
@@ -201,25 +210,105 @@ CommandLine::CommandLine(int ac, char *av[])
             help = true;
             showUsage(program, std::cerr);
             break;
+        } else if ("--config" == arg && (ok = ++i < ac)) {
+            config_path = av[i];
+            use_config_file = true;
+            break;
         } else {
             std::cerr << std::endl << program << ": Bad option '" << arg << "'"
                       << std::endl;
             ok = false;
         }
     }
+
+    // Of user specifies to use INI file on commandline, load these arguments
+    // from the file rather than the commandline.
+    if (use_config_file) {
+        sourceCount = 0;
+        sinkCount = 0;
+        static INIReader reader(config_path);
+
+        if (reader.ParseError() < 0) {
+            printf("[error] Cannot load %s\n", config_path.c_str());
+            ok = false;
+            return;
+        }
+
+        // check sources
+        std::string input_path = reader.Get("io", "input", "");
+        if (input_path != "") {
+            inFile = input_path;
+            ok = sourceCount == 0;
+            ++sourceCount;
+        }
+        int input_cameraID = reader.GetInteger("io", "camera", -1);
+        if (input_cameraID != -1) {
+            ok = input_cameraID && cameraId >= 0 && sourceCount == 0;
+            ++sourceCount;
+        }
+
+        // check output
+        std::string output_path = reader.Get("io", "output", "");
+        if (output_path != "") {
+          outFile = output_path;
+          ok = sinkCount == 0;
+          ++sinkCount;
+        }
+
+        amplify = reader.GetReal("magnification", "amplify", 20);
+        ok = amplify && amplify >= 0 && amplify <= 100;
+
+        fps = reader.GetInteger("io", "fps", 10);
+        ok = fps && fps >= 0;
+
+        lowCutoff = reader.GetReal("magnification", "low-cutoff", 0.7);
+        ok = lowCutoff && lowCutoff >= 0;
+
+        highCutoff = reader.GetReal("magnification", "high-cutoff", 1);
+        ok = highCutoff && highCutoff >= 0;
+
+        threshold = reader.GetReal("magnification", "threshold", 50);
+        ok = threshold && threshold >= 0 && threshold <= 100;
+
+        gui = reader.GetBoolean("io", "gui", false);
+        repeat = reader.GetBoolean("io", "repeat", false);
+
+        erodeDimension = reader.GetInteger("motion", "erode_dim", 3);
+        ok = erodeDimension && erodeDimension >= 0;
+
+        diffThreshold = reader.GetInteger("motion", "diff_threshold", 10);
+        ok = diffThreshold && diffThreshold >= 0;
+
+        motionDuration = reader.GetInteger("motion", "duration", 1);
+        ok = motionDuration && motionDuration >= 1;
+
+        pixelThreshold = reader.GetInteger("motion", "pixel_threshold", 5);
+        ok = pixelThreshold && pixelThreshold >= 1;
+
+        showDiff = reader.GetBoolean("motion", "show_diff", false);
+
+        crop = reader.GetBoolean("cropping", "crop", false);
+
+        about = reader.GetBoolean("io", "about", false);
+        help = reader.GetBoolean("io", "help", false);
+    }
+
     if (sourceCount > 1) {
         std::cerr << program << ": Specify only one of --camera or --input."
                   << std::endl << std::endl;
+        ok = false;
+        return;
     }
     if (sinkCount > 1) {
         std::cerr << program << ": Specify only one --output file."
                   << std::endl << std::endl;
+        ok = false;
+        return;
     }
     if (!(sourceCount && sinkCount)) if (!(about || help)) gui = true;
     if (about && !gui) std::cout << program << acknowlegements() << std::endl;
     if (!ok) showUsage(program, std::cerr);
 }
-
 
 CommandLine::CommandLine(const MainDialog *md)
     : av0(md->itsCl.av0)

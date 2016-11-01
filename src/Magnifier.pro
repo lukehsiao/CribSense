@@ -20,12 +20,19 @@ HEADERS += \
     RieszTransform.hpp \
     ComplexMat.hpp \
     Butterworth.hpp \
+    WorkerThread.hpp \
+    INIReader.h \
+    ini.h \
+    MotionDetection.hpp \
     #
 
 SOURCES += \
     CommandLine.cpp \
     MainDialog.cpp \
     Butterworth.cpp \
+    INIReader.cpp \
+    ini.c \
+    MotionDetection.cpp \
     main.cpp \
     #
 
