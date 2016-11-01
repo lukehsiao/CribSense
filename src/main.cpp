@@ -172,7 +172,7 @@ static int batch(const CommandLine &cl)
                 cv::Mat out_sections[SPLIT];
 
                 for (int i = 0; i < SPLIT; i++) {
-                    auto rowRange = cv::Range(frame.rows * i / SPLIT, (i == SPLIT - 1) ? frame.rows : (frame.rows * (i+1) / 3));
+                    auto rowRange = cv::Range(frame.rows * i / SPLIT, (frame.rows * (i+1) / SPLIT));
                     auto colRange = cv::Range(0, frame.cols);
                     in_sections[i] = frame(rowRange, colRange);
                     futures[i] = thread[i].push(do_transforms, &rt[i], in_sections[i]);
