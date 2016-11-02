@@ -67,13 +67,7 @@ static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
     return false;
 }
 
-/**
- * Launch rt.transform for the given RieszTransform and the given frame.
- */
-cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
-{
-    return rt->transform(frame);
-}
+
 
 cv::Rect find_crop(cv::Mat frame)
 {
@@ -113,41 +107,40 @@ static int batch(const CommandLine &cl)
 
     time_t start, end;
     time(&start);
+
     VideoSource source(cl.cameraId, cl.inFile);
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
-        cv::Rect cropWindow;
-        double fps;
-        if (cl.fps < 0) { // if user-sepcifies fps, use that
-            fps = measureFpsHack(cl, source);
-        } else {
-            fps = cl.fps;
-        }
+        // double fps;
+        // if (cl.fps < 0) { // if user-sepcifies fps, use that
+        //     fps = measureFpsHack(cl, source);
+        // } else {
+        //     fps = cl.fps;
+        // }
 
-        cv::Size size;
+        // cv::Size size = source.frameSize();
+        // cv::VideoWriter sink(cl.outFile, codec, fps, size);
 
-        // if cl.crop flag is true, reads the first frame to compute the crop window
-        // the first frame is discarded after use
-        if (cl.crop) {
-            cv::Mat firstFrame;
-            source.read(firstFrame);
-            cropWindow = find_crop(firstFrame);
-            size = cropWindow.size();
-        } else {
-            size = source.frameSize();
-        }
+        // // if cl.crop flag is true, reads the first frame to compute the crop window
+        // // the first frame is discarded after use
+        // if (cl.crop) {
+        //     cv::Mat firstFrame;
+        //     source.read(firstFrame);
+        //     cropWindow = find_crop(firstFrame);
+        //     size = cropWindow.size();
+        // } else {
+        //     size = source.frameSize();
+        // }
 
-        cv::VideoWriter sink(cl.outFile, codec, fps, size);
-
-        // Create 3 RieszTransforms. One for each section.
-        static const int SPLIT = 3;
-        RieszTransform rt[SPLIT];
-        WorkerThread<cv::Mat, RieszTransform*, cv::Mat> thread[SPLIT];
-
-        for (int i = 0; i < SPLIT; i++) {
-            cl.apply(rt[i]);
-            rt[i].fps(fps);
-        }
+        // // Create 3 RieszTransforms. One for each section.
+        // static const int SPLIT = 3;
+        // RieszTransform rt[SPLIT];
+        // WorkerThread<cv::Mat, RieszTransform*, cv::Mat> thread[SPLIT];
+        //
+        // for (int i = 0; i < SPLIT; i++) {
+        //     cl.apply(rt[i]);
+        //     rt[i].fps(fps);
+        // }
 
         for (;;) {
             // for each frame
@@ -160,34 +153,35 @@ static int batch(const CommandLine &cl)
                     return 0;
                 }
             } else {
-                if (cl.crop) {
-                    frame = frame(cropWindow);
-                }
+                // if (cl.crop) {
+                //     cv::imshow("cropped", frame(cropWindow));
+                //     if (cv::waitKey(30) >= 0) break;
+                // }
 
                 // Split a single 640 x 480 frame into equal sections, 1 section
                 // for each thread to process
                 // Run each transform independently.
-                std::future<cv::Mat> futures[SPLIT];
-                cv::Mat in_sections[SPLIT];
-                cv::Mat out_sections[SPLIT];
-
-                for (int i = 0; i < SPLIT; i++) {
-                    auto rowRange = cv::Range(frame.rows * i / SPLIT, (frame.rows * (i+1) / SPLIT));
-                    auto colRange = cv::Range(0, frame.cols);
-                    in_sections[i] = frame(rowRange, colRange);
-                    futures[i] = thread[i].push(do_transforms, &rt[i], in_sections[i]);
-                }
-
-                // recombine results and output
-                for (int i = 0; i < SPLIT; i++) {
-                    out_sections[i] = futures[i].get();
-                }
-                cv::Mat result;
-                cv::vconcat(out_sections, 3, result);
-                sink.write(result);
+                // std::future<cv::Mat> futures[SPLIT];
+                // cv::Mat in_sections[SPLIT];
+                // cv::Mat out_sections[SPLIT];
+                //
+                // for (int i = 0; i < SPLIT; i++) {
+                //     auto rowRange = cv::Range(frame.rows * i / SPLIT, (frame.rows * (i+1) / SPLIT));
+                //     auto colRange = cv::Range(0, frame.cols);
+                //     in_sections[i] = frame(rowRange, colRange);
+                //     futures[i] = thread[i].push(do_transforms, &rt[i], in_sections[i]);
+                // }
+                //
+                // // recombine results and output
+                // for (int i = 0; i < SPLIT; i++) {
+                //     out_sections[i] = futures[i].get();
+                // }
+                // cv::Mat result;
+                // cv::vconcat(out_sections, 3, result);
+                // sink.write(result);
 
                 // Just ignore this return value for now.
-                detector.isValidMotion(result);
+                detector.update(frame);
             }
         }
     }
@@ -197,21 +191,31 @@ static int batch(const CommandLine &cl)
 
 int main(int argc, char *argv[])
 {
-    QApplication qApplication(argc, argv);
-
     const CommandLine cl(argc, argv);
     if (cl.ok) {
-        if (cl.gui) {
-            MainDialog window(cl);
-            if (window.ok()) {
-                window.show();
-                return qApplication.exec();
-            }
-        } else {
-            printf("[info] starting batch processing.\n");
-            if (cl.sourceCount && cl.sinkCount) return batch(cl);
-            if (cl.help) return 0;
-        }
+        printf("[info] starting batch processing.\n");
+        if (cl.sourceCount && cl.sinkCount) return batch(cl);
+        if (cl.help) return 0;
     }
     return 1;
 }
+// int main(int argc, char *argv[])
+// {
+//     QApplication qApplication(argc, argv);
+//
+//     const CommandLine cl(argc, argv);
+//     if (cl.ok) {
+//         if (cl.gui) {
+//             MainDialog window(cl);
+//             if (window.ok()) {
+//                 window.show();
+//                 return qApplication.exec();
+//             }
+//         } else {
+//             printf("[info] starting batch processing.\n");
+//             if (cl.sourceCount && cl.sinkCount) return batch(cl);
+//             if (cl.help) return 0;
+//         }
+//     }
+//     return 1;
+// }
