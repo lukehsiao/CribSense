@@ -181,8 +181,8 @@ void MotionDetection::calculateROI() {
         maxNumChanges = numberOfChanges;
         int newArea = (x2-x1) * (y2-y1);
         // NOTE: Some sort of smoothing function here. Don't want drastic changes.
-        if (std::abs(newArea - prevArea) <= 100000 && newArea <= 640 * 480 / 3 && newArea >= 640 * 480 / 6) {
-            printf("[info] numchanges: %d (%d, %d), (%d, %d)\n", numberOfChanges, x1, y1, x2, y2);
+        if (std::abs(newArea - prevArea) <= 100000 && newArea <= 640 * 480 / 3 && newArea >= 640 * 480 / 10) {
+            // printf("[info] numchanges: %d (%d, %d), (%d, %d)\n", numberOfChanges, x1, y1, x2, y2);
             prevArea = newArea;
             roi = cv::Rect(cv::Point(x1,y1), cv::Point(x2, y2));
         }
@@ -227,6 +227,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             initTimer++;
             pushFrameBuffer(magnifyVideo(newFrame));
             // Reset ReiszTransforms and window
+            calculateROI();
             break;
         case idle_st:
             validTimer++;
@@ -267,6 +268,7 @@ void MotionDetection::update(cv::Mat newFrame) {
         case idle_st:
             if (validTimer >= roiUpdateInterval) {
                 currentState = reset_st;
+                reinitializeReisz(newFrame);
                 validTimer = 0;
             }
             break;
