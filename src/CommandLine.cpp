@@ -243,7 +243,8 @@ CommandLine::CommandLine(int ac, char *av[])
         }
         int input_cameraID = reader.GetInteger("io", "camera", -1);
         if (input_cameraID != -1) {
-            ok = input_cameraID && cameraId >= 0 && sourceCount == 0;
+            cameraId = input_cameraID;
+            ok = cameraId && cameraId >= 0 && sourceCount == 0;
             ++sourceCount;
         }
 
