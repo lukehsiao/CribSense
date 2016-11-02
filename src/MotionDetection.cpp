@@ -110,16 +110,13 @@ int MotionDetection::isValidMotion() {
 cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
     static cv::Mat result;
 
-    if (currentState == idle_st) {
-      std::cout << frame.size().width << " x " << frame.size().height << std::endl;
-    }
-
     // Split a single 640 x 480 frame into equal sections, 1 section
     // for each thread to process
     // Run each transform independently.
     static std::future<cv::Mat> futures[SPLIT];
     static cv::Mat in_sections[SPLIT];
     static cv::Mat out_sections[SPLIT];
+
 
     for (int i = 0; i < SPLIT; i++) {
         auto rowRange = cv::Range(frame.rows * i / SPLIT, (frame.rows * (i+1) / SPLIT));
@@ -202,8 +199,12 @@ void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
 }
 
 void MotionDetection::reinitializeReisz(cv::Mat frame) {
+    static cv::Mat in_sections[SPLIT];
     for (int i = 0; i < SPLIT; i++) {
-        // rt[i].intialize(rt[i]);
+        auto rowRange = cv::Range(frame.rows * i / SPLIT, (frame.rows * (i+1) / SPLIT));
+        auto colRange = cv::Range(0, frame.cols);
+        in_sections[i] = frame(rowRange, colRange);
+        rt[i].initialize(in_sections[i]);
     }
 }
 
@@ -229,7 +230,6 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case idle_st:
             validTimer++;
-            // magnifyVideo(newFrame(roi));
             pushFrameBuffer(magnifyVideo(newFrame(roi)));
             DifferentialCollins();
             break;
@@ -278,7 +278,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case valid_roi_st:
             if (refillTimer >= MINIMUM_FRAMES) {
-                std::cout << roi << std::endl;
+                // std::cout << roi << std::endl;
                 currentState = idle_st;
                 reinitializeReisz(newFrame(roi));
                 refillTimer = 0;
