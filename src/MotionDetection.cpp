@@ -5,6 +5,7 @@ enum motionDetection_st {
     init_st,        // enter this state while waiting for frames to settle
     reset_st,       // re-enlarge the video and recalculate ROI
     idle_st,        // evaluation is valid to compute from
+    monitor_motion_st, // observe motions in several frams
     compute_roi_st, // occasionally recompute roi
     valid_roi_st    // Flag a valid ROI
 } currentState = init_st;
@@ -36,6 +37,9 @@ void debugStatePrint() {
             case compute_roi_st:
                 printf("compute_roi_st\n");
                 break;
+            case monitor_motion_st:
+                printf("monitor_motion_st\n");
+                break;
             case valid_roi_st:
                 printf("valid_roi_st\n");
                 break;
@@ -62,7 +66,7 @@ void MotionDetection::DifferentialCollins() {
     cv::threshold(eval, eval, diffThreshold, 255, CV_THRESH_BINARY);
 
     // erode
-    cv::erode(eval, eval, erodeKernel);
+    // cv::erode(eval, eval, erodeKernel);
 
     if (showDiff) {
         cv::imshow( "Evaluation", eval );                  // Show our image inside it.
@@ -137,19 +141,56 @@ cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
     return result;
 }
 
+
+void MotionDetection::monitorMotion() {
+    if (currentState == reset_st) {
+      accumulator = cv::Mat::zeros(480, 640, CV_8UC1);
+      return;
+    }
+    cv::bitwise_or(evaluation, accumulator, accumulator);
+}
+
 void MotionDetection::calculateROI() {
-    static int maxNumChanges = 0;
-    static int prevArea = 640 * 480 / 2;
+    static int prevArea = 640 * 480 / 3;
     int numberOfChanges = 0;
     int x1 = evaluation.cols;
     int y1 = evaluation.rows;
     int x2 = 0;
     int y2 = 0;
 
-    if (currentState == reset_st) {
-      maxNumChanges = 0;
-      return;
-    }
+    cv::Mat erode1 = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    cv::erode(accumulator, accumulator, erode1);
+
+    cv::Mat dilateKernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(60, 60));
+    cv::dilate(accumulator, accumulator, dilateKernel);
+    //
+    // cv::Mat erode2 = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(10, 10));
+    // cv::erode(accumulator, accumulator, erode2);
+
+    // cv::inRange(hsvFrame, cv::Scalar(33, 100, 0), cv::Scalar(35, 245, 255), maskFrame);
+    //
+    // double largest_area = 0;
+    // int largest_contour = 0;
+    // std::vector<std::vector<cv::Point>> contours;
+    // findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    //
+    // for(unsigned int i = 0; i < contours.size(); i++ ) {
+    //     double area = cv::contourArea(contours[i], false);
+    //     if(area > largest_area){
+    //         largest_area = area;
+    //         largest_contour = i;
+    //     }
+    // }
+    //
+    // if (contours.empty()) {
+    //     return cv::Rect(0, 0, frame.cols, frame.rows);
+    // } else {
+    //     return cv::boundingRect(contours[largest_contour]);
+    // }
+
+
+    // cv::imshow("ORed", accumulator);
+    // cv::waitKey(0);
 
     // -----------------------------------
     // loop over image and detect changes
@@ -158,7 +199,7 @@ void MotionDetection::calculateROI() {
     {
         for(int j = 0; j < 480; j++)
         {
-            if(static_cast<int>(evaluation.at<uchar>(j,i)) == 255)
+            if(static_cast<int>(accumulator.at<uchar>(j,i)) == 255)
             {
                 numberOfChanges++;
                 if(x1>i) x1 = i;
@@ -177,11 +218,12 @@ void MotionDetection::calculateROI() {
     if(x2+10 < evaluation.cols-1) x2 += 10;
     if(y2+10 < evaluation.rows-1) y2 += 10;
 
-    if(numberOfChanges > maxNumChanges && numberOfChanges > 30) {
-        maxNumChanges = numberOfChanges;
+    if(numberOfChanges > 30) {
+        // maxNumChanges = numberOfChanges;
         int newArea = (x2-x1) * (y2-y1);
+        printf("[info] newArea: %d \t numchanges: %d (%d, %d), (%d, %d)\n", newArea, numberOfChanges, x1, y1, x2, y2);
         // NOTE: Some sort of smoothing function here. Don't want drastic changes.
-        if (std::abs(newArea - prevArea) <= 100000 && newArea <= 640 * 480 / 3 && newArea >= 640 * 480 / 10) {
+        if (std::abs(newArea - prevArea) <= 50000) {
             // printf("[info] numchanges: %d (%d, %d), (%d, %d)\n", numberOfChanges, x1, y1, x2, y2);
             prevArea = newArea;
             roi = cv::Rect(cv::Point(x1,y1), cv::Point(x2, y2));
@@ -227,17 +269,20 @@ void MotionDetection::update(cv::Mat newFrame) {
             initTimer++;
             pushFrameBuffer(magnifyVideo(newFrame));
             // Reset ReiszTransforms and window
-            calculateROI();
+            monitorMotion();
             break;
         case idle_st:
             validTimer++;
             pushFrameBuffer(magnifyVideo(newFrame(roi)));
             DifferentialCollins();
             break;
-        case compute_roi_st:
+        case monitor_motion_st:
             roiTimer++;
             pushFrameBuffer(magnifyVideo(newFrame));
             DifferentialCollins();
+            monitorMotion();
+            break;
+        case compute_roi_st:
             calculateROI();
             break;
         case valid_roi_st:
@@ -255,13 +300,13 @@ void MotionDetection::update(cv::Mat newFrame) {
     switch(currentState) {
         case init_st:
             if (initTimer >= framesToSettle) {
-                currentState = compute_roi_st;
+                currentState = monitor_motion_st;
                 initTimer = 0;
             }
             break;
         case reset_st:
             if (initTimer >= framesToSettle) {
-                currentState = compute_roi_st;
+                currentState = monitor_motion_st;
                 initTimer = 0;
             }
             break;
@@ -272,11 +317,14 @@ void MotionDetection::update(cv::Mat newFrame) {
                 validTimer = 0;
             }
             break;
-        case compute_roi_st:
+        case monitor_motion_st:
             if (roiTimer >= roiWindow) {
-                currentState = valid_roi_st;
+                currentState = compute_roi_st;
                 roiTimer = 0;
             }
+            break;
+        case compute_roi_st:
+            currentState = valid_roi_st;
             break;
         case valid_roi_st:
             if (refillTimer >= MINIMUM_FRAMES) {
@@ -304,6 +352,7 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     roiWindow = cl.roiWindow;
     roi = cv::Rect(cv::Point(0, 0), cv::Point(640, 480));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
+    accumulator = cv::Mat::zeros(480, 640, CV_8UC1);
 
     for (int i = 0; i < SPLIT; i++) {
         cl.apply(rt[i]);

@@ -18,6 +18,7 @@ private:
     int frameCount;
     cv::Mat erodeKernel;
     cv::Mat evaluation;
+    cv::Mat accumulator;
     cv::Rect roi;
     int diffThreshold;
     bool showDiff;
@@ -43,7 +44,7 @@ private:
 
     void reinitializeReisz(cv::Mat frame);
 
-
+    void monitorMotion();
 
 public:
 
