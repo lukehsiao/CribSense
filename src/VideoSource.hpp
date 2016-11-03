@@ -97,7 +97,7 @@ public:
     // If id is negative, open the video file named fileName.
     // Otherwise open the camera identified by id.
     //
-    VideoSource(int id, const std::string &fileName)
+    VideoSource(int id, const std::string &fileName, int fps, int width, int height)
         : cv::VideoCapture()
         , itsFile(fileName)
         , itsCameraId(id)
@@ -106,6 +106,9 @@ public:
             this->open(itsFile);
         } else {
             this->open(itsCameraId);
+            set(CV_CAP_PROP_FPS, fps);
+            set(CV_CAP_PROP_FRAME_WIDTH, width);
+            set(CV_CAP_PROP_FRAME_HEIGHT, height);
         }
     }
 };
