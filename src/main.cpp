@@ -113,7 +113,7 @@ static int batch(const CommandLine &cl)
 
     time_t start, end;
     time(&start);
-    VideoSource source(cl.cameraId, cl.inFile, cl.fps, 640, 480);
+    VideoSource source(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
         cv::Rect cropWindow;

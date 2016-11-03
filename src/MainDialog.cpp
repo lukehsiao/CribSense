@@ -43,7 +43,7 @@ static std::string chooseInputFile(MainDialog *md)
 static VideoSource *newVideoSource(MainDialog *md, const CommandLine &cl)
 {
     if (cl.sourceCount == 1) {
-        return new VideoSource(cl.cameraId, cl.inFile, cl.fps, 640, 480);
+        return new VideoSource(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
     } else {
         static const char chooseFile[] = "Choose a video file";
         QString returnedText;
@@ -57,7 +57,7 @@ static VideoSource *newVideoSource(MainDialog *md, const CommandLine &cl)
                 bool okIgnored;
                 cameraId = returnedText.toInt(&okIgnored);
             }
-            return new VideoSource(cameraId, filename, cl.fps, 640, 480);
+            return new VideoSource(cameraId, filename, cl.fps, cl.frameWidth, cl.frameHeight);
         }
     }
     return 0;
