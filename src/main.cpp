@@ -107,8 +107,12 @@ static int batch(const CommandLine &cl)
 
     time_t start, end;
     time(&start);
+<<<<<<< HEAD
 
     VideoSource source(cl.cameraId, cl.inFile);
+=======
+    VideoSource source(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
+>>>>>>> 7779979991acf94bc81d876f80bc8b627a3aa87b
     if (canReadInFile(cl, source) && canWriteOutFileHackRandomHack(cl)) {
         const int codec = source.fourCcCodec();
         // double fps;

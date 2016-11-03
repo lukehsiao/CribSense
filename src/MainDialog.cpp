@@ -43,7 +43,7 @@ static std::string chooseInputFile(MainDialog *md)
 static VideoSource *newVideoSource(MainDialog *md, const CommandLine &cl)
 {
     if (cl.sourceCount == 1) {
-        return new VideoSource(cl.cameraId, cl.inFile);
+        return new VideoSource(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
     } else {
         static const char chooseFile[] = "Choose a video file";
         QString returnedText;
@@ -57,7 +57,7 @@ static VideoSource *newVideoSource(MainDialog *md, const CommandLine &cl)
                 bool okIgnored;
                 cameraId = returnedText.toInt(&okIgnored);
             }
-            return new VideoSource(cameraId, filename);
+            return new VideoSource(cameraId, filename, cl.fps, cl.frameWidth, cl.frameHeight);
         }
     }
     return 0;
@@ -205,7 +205,7 @@ bool MainDialog::doOneFrame()
         //cv::inRange(hsvFrame, cv::Scalar(17, 0, 0), cv::Scalar(21, 245, 245), maskFrame);    //color filter for baby blanket
         cv::inRange(hsvFrame, cv::Scalar(33, 100, 0), cv::Scalar(35, 245, 255), maskFrame);
         cv::bitwise_and(inFrame, inFrame, resultFrame, maskFrame);
-        
+
         cv::Rect bounding_box;
         double largest_area = 0;
         int largest_contour = 0;
@@ -213,17 +213,17 @@ bool MainDialog::doOneFrame()
         findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
         for(unsigned int i = 0; i < contours.size(); i++ ) {
-            double area = cv::contourArea(contours[i], false); 
+            double area = cv::contourArea(contours[i], false);
             if(area > largest_area){
                 largest_area = area;
                 largest_contour = i;
             }
         }
-        
+
         if (!contours.empty()) {
             bounding_box = cv::boundingRect(contours[largest_contour]);
             cv::rectangle(resultFrame, bounding_box, cv::Scalar(0, 255, 0), 2, 8, 0);    //draw box
-            
+
             if (!attemptedCrop) {
                 cropBox = bounding_box;
                 canCrop = true;
@@ -231,11 +231,11 @@ bool MainDialog::doOneFrame()
         }
         itsInputWidget.show(resultFrame);
         attemptedCrop = true;
-        
+
         if (canCrop) {
             inFrame = inFrame(cropBox);
         }
-        
+
         cv::Mat outFrame = itsTransform->transform(inFrame);
         //itsInputWidget.show(inFrame);
         itsOutputWidget.show(outFrame);
