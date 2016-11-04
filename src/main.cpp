@@ -49,10 +49,10 @@ static int batch(const CommandLine &cl)
 int main(int argc, char *argv[])
 {
     const CommandLine cl(argc, argv);
+    if (cl.help || cl.about) return 0;
     if (cl.ok) {
         printf("[info] starting batch processing.\n");
         if (cl.sourceCount && cl.sinkCount) return batch(cl);
-        if (cl.help) return 0;
     }
     return 1;
 }

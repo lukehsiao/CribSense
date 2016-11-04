@@ -225,8 +225,8 @@ CommandLine::CommandLine(int ac, char *av[])
         return;
     }
     if (!(sourceCount && sinkCount)) if (!(about || help)) {
-      std::cerr << program << ": Specify at least 1 input."
-                << std::endl << std::endl;
+        std::cerr << program << ": Specify at least 1 input."
+                  << std::endl << std::endl;
     }
     if (about) std::cout << program << acknowlegements() << std::endl;
     if (!ok) showUsage(program, std::cerr);
