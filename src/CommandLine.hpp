@@ -137,8 +137,6 @@ struct CommandLine {
     double highCutoff;               // The high frequency of the bandpass.
     double threshold;                // The phase threshold as % of pi.
     bool showDiff;                   // optionally show the diff between frames
-    bool repeat;                     // True for looping input file.
-    bool gui;                        // True for the GUI controls.
     bool about;                      // True iff --about.
     bool help;                       // True iff --help.
     bool ok;                         // True if (ac, av) parse is valid.

@@ -144,7 +144,7 @@ cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
 
 void MotionDetection::monitorMotion() {
     if (currentState == reset_st) {
-        accumulator = cv::Mat::zeros(480, 640, CV_8UC1);
+        accumulator = cv::Mat::zeros(frameHeight, frameWidth, CV_8UC1);
         return;
     }
     // Bitwise OR all the frames in the window to aggregate motion
@@ -152,7 +152,7 @@ void MotionDetection::monitorMotion() {
 }
 
 void MotionDetection::calculateROI() {
-    static int prevArea = 640 * 480 / 3;
+    static int prevArea = frameWidth * frameHeight / 3;
 
     // Erode the remaining noise
     cv::erode(accumulator, accumulator, erodeKernel);
@@ -189,40 +189,88 @@ void MotionDetection::calculateROI() {
     }
     else {
         cv::Rect result = cv::boundingRect(contours[largestContour]);;
-        // TODO: Add smoothing function here. We want to enforce some size
+        // NOTE: Add smoothing function here. We want to enforce some size
         // constrainst and not allow HUGE changes in frame size (which would
         // indicate a bad read, and that we should just stay the same until
         // next read).
         printf("[info] prevArea: %d, largestArea: %d\n", prevArea, largestArea);
-        if (largestArea >= 640 * 480 / 3) {
+        if (largestArea >= frameWidth * frameHeight / 3) {
             // NOTE: Just trying to crop down in a reasonable way. Making
             // a 90k pixel square centered on the geometric center of the
             // original bounding rect.
             int c_x = result.x + result.width/2;
             int c_y = result.y + result.height/2;
-            result = cv::Rect(c_x - 150, c_y - 150, 300, 300);
-            largestArea = 300 * 300;
-            // bool is_inside = (rect & cv::Rect(0, 0, mat.cols, mat.rows)) == rect;
+
+            // make sure the roi is inside the image
+            const int target_dim = 300;
+            cv::Rect target_roi = cv::Rect(c_x - 150, c_y - 150, target_dim, target_dim);
+            bool is_inside = (target_roi & cv::Rect(0, 0, accumulator.cols, accumulator.rows)) == target_roi;
+            if (is_inside) {
+                result = target_roi;
+            }
+            else {
+                // [info] prevArea: 102400, largestArea: 105572
+                // [200 x 200 from (484, 302)]
+                if (target_roi.x + target_roi.width > frameWidth) {
+                    target_roi.x -= target_roi.x + target_roi.width - frameWidth;
+                }
+                if (target_roi.y + target_roi.height > frameHeight) {
+                    target_roi.y -= target_roi.y + target_roi.height - frameHeight;
+                }
+                if (target_roi.x < 0) {
+                    target_roi.x = 0;
+                }
+                if (target_roi.y < 0) {
+                    target_roi.y = 0;
+                }
+            }
+            result = target_roi;
+            largestArea = target_dim * target_dim;
         }
-        else if (largestArea <= 640 * 480 / 20) {
+        else if (largestArea <= frameWidth * frameHeight / 20) {
             // TODO: Too small, enlarging it slightly around the geometric center
             int c_x = result.x + result.width/2;
             int c_y = result.y + result.height/2;
             result = cv::Rect(c_x - 100, c_y - 100, 200, 200);
-            largestArea = 200 * 200;
+
+            // make sure the roi is inside the image
+            const int target_dim = 200;
+            cv::Rect target_roi = cv::Rect(c_x - 150, c_y - 150, target_dim, target_dim);
+            bool is_inside = (target_roi & cv::Rect(0, 0, accumulator.cols, accumulator.rows)) == target_roi;
+            if (is_inside) {
+                result = target_roi;
+            }
+            else {
+                // [info] prevArea: 102400, largestArea: 105572
+                // [200 x 200 from (484, 302)]
+                if (target_roi.x + target_roi.width > frameWidth) {
+                    target_roi.x -= target_roi.x + target_roi.width - frameWidth;
+                }
+                if (target_roi.y + target_roi.height > frameHeight) {
+                    target_roi.y -= target_roi.y + target_roi.height - frameHeight;
+                }
+                if (target_roi.x < 0) {
+                    target_roi.x = 0;
+                }
+                if (target_roi.y < 0) {
+                    target_roi.y = 0;
+                }
+            }
+
+            result = target_roi;
+            largestArea = target_dim * target_dim;
         }
 
-        std::cout << result << std::endl;
+        // std::cout << result << std::endl;
 
         // Smooth the changes, if any. No changes greather than 30%
         if (std::abs(largestArea - prevArea) * 100 / prevArea <= 80) {
             prevArea = largestArea;
             printf("[info] Adjusting roi.\n");
+            std::cout << "[info] Adjusting roi to: " << result << std::endl;
             roi = result;
         }
     }
-
-
 }
 
 void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
@@ -245,7 +293,9 @@ void MotionDetection::reinitializeReisz(cv::Mat frame) {
 }
 
 void MotionDetection::update(cv::Mat newFrame) {
+    // Print states to terminal for debugging
     debugStatePrint();
+
     static unsigned initTimer = 0;
     static unsigned validTimer = 0;
     static unsigned roiTimer = 0;
@@ -354,10 +404,12 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     roiUpdateInterval = cl.roiUpdateInterval;
     roiWindow = cl.roiWindow;
     crop = cl.crop;
-    roi = cv::Rect(cv::Point(0, 0), cv::Point(640, 480));
+    frameWidth = cl.frameWidth;
+    frameHeight = cl.frameHeight;
+    roi = cv::Rect(cv::Point(0, 0), cv::Point(cl.frameWidth, cl.frameHeight));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
-    accumulator = cv::Mat::zeros(480, 640, CV_8UC1);
+    accumulator = cv::Mat::zeros(cl.frameHeight, cl.frameWidth, CV_8UC1);
 
     for (int i = 0; i < SPLIT; i++) {
         cl.apply(rt[i]);

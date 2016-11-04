@@ -26,6 +26,8 @@ private:
     bool crop;
     int pixelThreshold;
     int motionDuration;
+    int frameWidth;
+    int frameHeight;
     unsigned framesToSettle;
     unsigned roiUpdateInterval;
     unsigned roiWindow;

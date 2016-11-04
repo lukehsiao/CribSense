@@ -31,49 +31,14 @@ const char *CommandLine::acknowlegements()
     return result;
 }
 
-static std::string percentageOption(const char *o, const std::string &program)
-{
-    std::stringstream oss;
-    if (program != "") oss << std::endl << program << ": ";
-    oss << o << " takes a percentage 0 to 100." << std::endl;
-    return oss.str();
-}
-static std::string amplifyOption(const std::string &program = "")
-{
-    return percentageOption("--amplify", program);
-}
-static std::string thresholdOption(const std::string &program = "")
-{
-    return percentageOption("--threshold", program);
-}
-
-
 void CommandLine::showUsage(const std::string &program, std::ostream &os)
 {
     os << std::endl << program << ": Amplify motion in a video." << std::endl
        << std::endl
-       << "Usage: " << program << " [--about] [--gui] [--repeat] [<source>] "
-       << "[--output <file>] [--amplify %] [--threshold %] [--fps <#>]"
-       << "[--low-cutoff <Hz>] [--high-cutoff <Hz>]" << std::endl
+       << "Usage: " << program << " [--config] <path>" << std::endl
        << std::endl
-       << "Where: " << "--about shows acknowledgements." << std::endl
-       << "       " << "--gui opens the GUI controls window." << std::endl
-       << "       " << "--repeat loops an input video file." << std::endl
-       << "       " << "--output sends processed video to <file>." << std::endl
-       << "       " << "--fps forces the input video fps." << std::endl
-       << "       " << amplifyOption()
-       << "       " << thresholdOption()
-       << "       " << "--low-cutoff is frequency in <Hz>." << std::endl
-       << "       " << "--high-cutoff is frequency in <Hz>." << std::endl
-       << "  and  " << std::endl
-       << "       " << "<source> is either '--camera <id>' or '--input <file>'"
-       << std::endl
-       << "       " << "         where <id> is an integer camera ID"
-       << std::endl
-       << "       " << "         and <file> is a video file to process."
-       << std::endl << std::endl
-       << "Example: " << program << " --gui --input in.avi --output out.avi "
-       << "         " << "--amplify 18 --low-cutoff 1.3 --high-cutoff 2.7"
+       << "Where: " << "--config specifies the path to the config INI." << std::endl
+       << "Example: " << program << " --config config.ini"
        << std::endl << std::endl;
 }
 
@@ -81,8 +46,6 @@ void CommandLine::showUsage(const std::string &program, std::ostream &os)
 std::ostream &operator<<(std::ostream &os, const CommandLine &cl)
 {
     os << cl.av0;
-    if (cl.gui) os << " --gui";
-    if (cl.repeat) os << " --repeat";
     if (cl.inFile.empty()) {
         if (cl.cameraId >= 0) os << " --camera " << cl.cameraId;
     } else {
@@ -107,30 +70,6 @@ void CommandLine::apply(RieszTransform &rt) const
     if (threshold  >= 0) rt.threshold(threshold);
 }
 
-
-// Check repeat only if there is already an output file specified.
-//
-void CommandLine::apply(MainDialog &md) const
-{
-    static const double tick = md.itsLowCutoff.slider.tickInterval();
-    assert(ok);
-    assert(md.itsTransform);
-    apply(*md.itsTransform);
-    md.changeAmplification(amplify);
-    md.changeHighCutoff(highCutoff * tick);
-    md.changeLowCutoff(lowCutoff * tick);
-    md.changeThreshold(threshold);
-    if (!outFile.empty()) {
-        if (md.itsRepeat) md.itsRepeat->setChecked(repeat);
-        const int codec = md.itsSource->fourCcCodec();
-        const cv::Size size = md.itsSource->frameSize();
-        MeasureFps mFps(md.itsSource->fps());
-        md.itsOutput.saveTo(codec, mFps.fps(), size, outFile);
-        md.itsOutput.itsSave.setAutoDefault(false);
-    }
-}
-
-
 // Defaults for transform settings should be OK for the minimum frame rate.
 //
 CommandLine::CommandLine(int ac, char *av[])
@@ -152,7 +91,6 @@ CommandLine::CommandLine(int ac, char *av[])
     , highCutoff(MeasureFps::minimumFps() / 2.0)
     , threshold(25.0)
     , showDiff(false)
-    , repeat(false)
     , gui(false)
     , about(false)
     , help(false)
@@ -174,41 +112,6 @@ CommandLine::CommandLine(int ac, char *av[])
         std::stringstream raw(av[i]); std::string arg; raw >> arg;
         if ("--about" == arg) {
             about = true;
-        } else if ("--camera" == arg && (ok = ++i < ac)) {
-            std::stringstream ss(av[i]);
-            ok = (ss >> cameraId) && cameraId >= 0 && sourceCount == 0;
-            ++sourceCount;
-        } else if ("--input" == arg && (ok = ++i < ac)) {
-            inFile = av[i];
-            ok = sourceCount == 0;
-            ++sourceCount;
-        } else if ("--output" == arg && (ok = ++i < ac)) {
-            outFile = av[i];
-            ok = sinkCount == 0;
-            ++sinkCount;
-        } else if ("--fps" == arg && (ok = ++i < ac)) {
-            std::stringstream ss(av[i]);
-            ok = (ss >> fps) && fps > 0;
-        } else if ("--amplify" == arg && (ok = ++i < ac)) {
-            std::stringstream ss(av[i]);
-            ok = (ss >> amplify) && amplify >= 0 && amplify <= 100;
-            if (!ok) std::cerr << amplifyOption(program);
-        } else if ("--low-cutoff" == arg && (ok = ++i < ac)) {
-            std::stringstream ss(av[i]);
-            ok = (ss >> lowCutoff) && lowCutoff >= 0;
-        } else if ("--high-cutoff" == arg && (ok = ++i < ac)) {
-            std::stringstream ss(av[i]);
-            ok = (ss >> highCutoff) && highCutoff >= 0;
-        } else if ("--threshold" == arg && (ok = ++i < ac)) {
-            std::stringstream ss(av[i]);
-            ok = (ss >> threshold) && threshold >= 0 && threshold <= 100;
-            if (!ok) std::cerr << thresholdOption(program);
-        } else if ("--crop" == arg) {
-            crop = true;
-        } else if ("--repeat" == arg) {
-            repeat = true;
-        } else if ("--gui" == arg) {
-            gui = true;
         } else if ("--help" == arg) {
             help = true;
             showUsage(program, std::cerr);
@@ -274,9 +177,6 @@ CommandLine::CommandLine(int ac, char *av[])
         threshold = reader.GetReal("magnification", "threshold", 50);
         ok = ok && threshold && threshold >= 0 && threshold <= 100;
 
-        gui = reader.GetBoolean("io", "gui", false);
-        repeat = reader.GetBoolean("io", "repeat", false);
-
         frameWidth = reader.GetInteger("io", "width", 640);
         ok = ok && frameWidth >= 320 && frameWidth <= 1920;
         frameHeight = reader.GetInteger("io", "height", 480);
@@ -326,41 +226,10 @@ CommandLine::CommandLine(int ac, char *av[])
         ok = false;
         return;
     }
-    if (!(sourceCount && sinkCount)) if (!(about || help)) gui = true;
-    if (about && !gui) std::cout << program << acknowlegements() << std::endl;
-    if (!ok) showUsage(program, std::cerr);
-}
-
-CommandLine::CommandLine(const MainDialog *md)
-    : av0(md->itsCl.av0)
-    , program(md->itsCl.program)
-    , inFile()
-    , outFile()
-    , cameraId(-1)
-    , sourceCount(0)
-    , sinkCount(0)
-    , amplify(-1.0)
-    , lowCutoff(-1.0)
-    , highCutoff(-1.0)
-    , threshold(-1.0)
-    , repeat(false)
-    , gui(true)
-    , about(false)
-    , help(false)
-    , ok(false)                         // Never check this.
-    , crop(false)
-{
-    repeat = md->itsRepeat && md->itsRepeat->isChecked();
-    if (md->itsSource) {
-        if (md->itsSource->isFile()) {
-            inFile = md->itsSource->fileName();
-        } else {
-            cameraId = md->itsSource->cameraId();
-        }
+    if (!(sourceCount && sinkCount)) if (!(about || help)) {
+      std::cerr << program << ": Specify at least 1 input."
+                << std::endl << std::endl;
     }
-    if (!md->itsOutput.itsFile.empty()) outFile = md->itsOutput.itsFile;
-    amplify    = md->itsAmplify.number.value();
-    lowCutoff  = md->itsLowCutoff.number.value();
-    highCutoff = md->itsHighCutoff.number.value();
-    threshold  = md->itsThreshold.number.value();
+    if (about) std::cout << program << acknowlegements() << std::endl;
+    if (!ok) showUsage(program, std::cerr);
 }
