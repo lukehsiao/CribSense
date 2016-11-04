@@ -15,7 +15,6 @@ HEADERS += \
     VideoSource.hpp \
     CommandLine.hpp \
     DisplayWidget.hpp \
-    MainDialog.hpp \
     RieszTransform.hpp \
     ComplexMat.hpp \
     Butterworth.hpp \
@@ -27,7 +26,6 @@ HEADERS += \
 
 SOURCES += \
     CommandLine.cpp \
-    MainDialog.cpp \
     Butterworth.cpp \
     INIReader.cpp \
     ini.c \

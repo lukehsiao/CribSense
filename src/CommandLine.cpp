@@ -1,5 +1,4 @@
 #include "CommandLine.hpp"
-#include "MainDialog.hpp"
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
 
@@ -91,7 +90,6 @@ CommandLine::CommandLine(int ac, char *av[])
     , highCutoff(MeasureFps::minimumFps() / 2.0)
     , threshold(25.0)
     , showDiff(false)
-    , gui(false)
     , about(false)
     , help(false)
     , ok(true)           // Check this before use.
