@@ -2,12 +2,12 @@
 #include "MotionDetection.hpp"
 
 enum motionDetection_st {
-    init_st,        // enter this state while waiting for frames to settle
-    reset_st,       // re-enlarge the video and recalculate ROI
-    idle_st,        // evaluation is valid to compute from
-    monitor_motion_st, // observe motions in several frams
-    compute_roi_st, // occasionally recompute roi
-    valid_roi_st    // Flag a valid ROI
+    init_st,            // enter this state while waiting for frames to settle
+    reset_st,           // re-enlarge the video and recalculate ROI
+    idle_st,            // evaluation is valid to compute from
+    monitor_motion_st,  // observe motions in several frams
+    compute_roi_st,     // occasionally recompute roi
+    valid_roi_st        // Flag a valid ROI
 } currentState = init_st;
 
 /**
@@ -144,91 +144,55 @@ cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
 
 void MotionDetection::monitorMotion() {
     if (currentState == reset_st) {
-      accumulator = cv::Mat::zeros(480, 640, CV_8UC1);
-      return;
+        accumulator = cv::Mat::zeros(480, 640, CV_8UC1);
+        return;
     }
+    // Bitwise OR all the frames in the window to aggregate motion
     cv::bitwise_or(evaluation, accumulator, accumulator);
 }
 
 void MotionDetection::calculateROI() {
     static int prevArea = 640 * 480 / 3;
-    int numberOfChanges = 0;
-    int x1 = evaluation.cols;
-    int y1 = evaluation.rows;
-    int x2 = 0;
-    int y2 = 0;
 
-    cv::Mat erode1 = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-    cv::erode(accumulator, accumulator, erode1);
+    // Erode the remaining noise
+    cv::Mat erode_noise = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    cv::erode(accumulator, accumulator, erode_noise);
 
+    // Dialate the remaining signal
     cv::Mat dilateKernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(60, 60));
     cv::dilate(accumulator, accumulator, dilateKernel);
-    //
-    // cv::Mat erode2 = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(10, 10));
-    // cv::erode(accumulator, accumulator, erode2);
 
-    // cv::inRange(hsvFrame, cv::Scalar(33, 100, 0), cv::Scalar(35, 245, 255), maskFrame);
-    //
-    // double largest_area = 0;
-    // int largest_contour = 0;
-    // std::vector<std::vector<cv::Point>> contours;
-    // findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-    //
-    // for(unsigned int i = 0; i < contours.size(); i++ ) {
-    //     double area = cv::contourArea(contours[i], false);
-    //     if(area > largest_area){
-    //         largest_area = area;
-    //         largest_contour = i;
-    //     }
-    // }
-    //
-    // if (contours.empty()) {
-    //     return cv::Rect(0, 0, frame.cols, frame.rows);
-    // } else {
-    //     return cv::boundingRect(contours[largest_contour]);
-    // }
+    // Create bitmask
+    cv::Mat maskFrame = accumulator > 200;
 
+    double largest_area = 0;
+    int largest_contour = 0;
+    std::vector<std::vector<cv::Point>> contours;
+    findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
+    for(unsigned int i = 0; i < contours.size(); i++ ) {
+        double area = cv::contourArea(contours[i], false);
+        if(area > largest_area) {
+            largest_area = area;
+            largest_contour = i;
+        }
+    }
+
+    if (contours.empty()) {
+        printf("[info] Uhh....didn't see any motion....\n");
+        roi = cv::Rect(0, 0, 640, 480);
+    }
+    else {
+        // TODO: Add smoothing function here. We want to enforce some size
+        // constrainst and not allow HUGE changes in frame size (which would
+        // indicate a bad read, and that we should just stay the same until
+        // next read).
+        roi = cv::boundingRect(contours[largest_contour]);
+    }
+
+    // NOTE: Uncomment this to view what the post-dilation view looks like
     // cv::imshow("ORed", accumulator);
     // cv::waitKey(0);
-
-    // -----------------------------------
-    // loop over image and detect changes
-
-    for(int i = 0; i < 640; i++)
-    {
-        for(int j = 0; j < 480; j++)
-        {
-            if(static_cast<int>(accumulator.at<uchar>(j,i)) == 255)
-            {
-                numberOfChanges++;
-                if(x1>i) x1 = i;
-                if(x2<i) x2 = i;
-                if(y1>j) y1 = j;
-                if(y2<j) y2 = j;
-            }
-        }
-    }
-
-    // -------------------------
-    //check if not out of bounds
-
-    if(x1-10 > 0) x1 -= 10;
-    if(y1-10 > 0) y1 -= 10;
-    if(x2+10 < evaluation.cols-1) x2 += 10;
-    if(y2+10 < evaluation.rows-1) y2 += 10;
-
-    if(numberOfChanges > 30) {
-        // maxNumChanges = numberOfChanges;
-        int newArea = (x2-x1) * (y2-y1);
-        printf("[info] newArea: %d \t numchanges: %d (%d, %d), (%d, %d)\n", newArea, numberOfChanges, x1, y1, x2, y2);
-        // NOTE: Some sort of smoothing function here. Don't want drastic changes.
-        if (std::abs(newArea - prevArea) <= 50000) {
-            // printf("[info] numchanges: %d (%d, %d), (%d, %d)\n", numberOfChanges, x1, y1, x2, y2);
-            prevArea = newArea;
-            roi = cv::Rect(cv::Point(x1,y1), cv::Point(x2, y2));
-        }
-    }
 }
 
 void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
