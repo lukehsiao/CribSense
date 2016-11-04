@@ -193,7 +193,6 @@ void MotionDetection::calculateROI() {
         // constrainst and not allow HUGE changes in frame size (which would
         // indicate a bad read, and that we should just stay the same until
         // next read).
-        printf("[info] prevArea: %d, largestArea: %d\n", prevArea, largestArea);
         if (largestArea >= frameWidth * frameHeight / 3) {
             // NOTE: Just trying to crop down in a reasonable way. Making
             // a 90k pixel square centered on the geometric center of the
@@ -266,7 +265,6 @@ void MotionDetection::calculateROI() {
         // Smooth the changes, if any. No changes greather than 30%
         if (std::abs(largestArea - prevArea) * 100 / prevArea <= 80) {
             prevArea = largestArea;
-            printf("[info] Adjusting roi.\n");
             std::cout << "[info] Adjusting roi to: " << result << std::endl;
             roi = result;
         }
