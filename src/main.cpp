@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     if (cl.help || cl.about) return 0;
     if (cl.ok) {
         printf("[info] starting batch processing.\n");
-        if (cl.sourceCount && cl.sinkCount) return batch(cl);
+        if (cl.sourceCount) return batch(cl);
     }
     return 1;
 }

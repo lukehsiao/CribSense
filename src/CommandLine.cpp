@@ -50,7 +50,6 @@ std::ostream &operator<<(std::ostream &os, const CommandLine &cl)
     } else {
         os << " --input " << cl.inFile;
     }
-    if (!cl.outFile.empty()) os << " --output "      << cl.outFile;
     if (cl.amplify    >= 0)  os << " --amplify "     << cl.amplify;
     if (cl.lowCutoff  >  0)  os << " --low-cutoff "  << cl.lowCutoff;
     if (cl.highCutoff >  0)  os << " --high-cutoff " << cl.highCutoff;
@@ -75,10 +74,8 @@ CommandLine::CommandLine(int ac, char *av[])
     : av0(av[0])
     , program()
     , inFile()
-    , outFile()
     , cameraId(-1)
     , sourceCount(0)
-    , sinkCount(0)
     , erodeDimension(2)
     , dilateDimension(60)
     , diffThreshold(5)
@@ -86,8 +83,8 @@ CommandLine::CommandLine(int ac, char *av[])
     , pixelThreshold(10)
     , amplify(30.0)
     , fps(-1.0)
-    , lowCutoff( MeasureFps::minimumFps() / 4.0)
-    , highCutoff(MeasureFps::minimumFps() / 2.0)
+    , lowCutoff(0.5)
+    , highCutoff(1.0)
     , threshold(25.0)
     , showDiff(false)
     , about(false)
@@ -129,7 +126,6 @@ CommandLine::CommandLine(int ac, char *av[])
     // from the file rather than the commandline.
     if (use_config_file) {
         sourceCount = 0;
-        sinkCount = 0;
         static INIReader reader(config_path);
 
         if (reader.ParseError() < 0) {
@@ -150,14 +146,6 @@ CommandLine::CommandLine(int ac, char *av[])
             cameraId = input_cameraID;
             ok = ok && cameraId && cameraId >= 0 && sourceCount == 0;
             ++sourceCount;
-        }
-
-        // check output
-        std::string output_path = reader.Get("io", "output", "");
-        if (output_path != "") {
-          outFile = output_path;
-          ok = ok && sinkCount == 0;
-          ++sinkCount;
         }
 
         amplify = reader.GetReal("magnification", "amplify", 20);
@@ -218,13 +206,7 @@ CommandLine::CommandLine(int ac, char *av[])
         ok = false;
         return;
     }
-    if (sinkCount > 1) {
-        std::cerr << program << ": Specify only one --output file."
-                  << std::endl << std::endl;
-        ok = false;
-        return;
-    }
-    if (!(sourceCount && sinkCount)) if (!(about || help)) {
+    if (!(sourceCount)) if (!(about || help)) {
         std::cerr << program << ": Specify at least 1 input."
                   << std::endl << std::endl;
     }
