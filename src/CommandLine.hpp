@@ -122,14 +122,15 @@ struct CommandLine {
     int sourceCount;                 // Count of video sources specified.
     int sinkCount;                   // Count of video sinks specified.
     int erodeDimension;              // Dimention of the erode kernel.
+    int dilateDimension;             // Dimention of the dilate kernel.
     int diffThreshold;               // Difference threshold before marking
                                      //     pixel as changed.
     int motionDuration;              // # of frames motion must be detected.
     int pixelThreshold;              // # of pixels that must be different
                                      //   to be flagged as motion.
-    unsigned framesToSettle;
-    unsigned roiUpdateInterval;
-    unsigned roiWindow;
+    unsigned framesToSettle;         // # frames to ignore on startup and reset
+    unsigned roiUpdateInterval;      // # frames between roi updates
+    unsigned roiWindow;              // # frames to consider when calculating roi
     double amplify;                  // The current amplification.
     double fps;                      // user-specified fps of input video.
     double lowCutoff;                // The low frequency of the bandpass.

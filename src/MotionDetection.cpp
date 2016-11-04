@@ -68,11 +68,11 @@ void MotionDetection::DifferentialCollins() {
     // erode
     // cv::erode(eval, eval, erodeKernel);
 
-    if (showDiff) {
-        cv::imshow( "Evaluation", eval );                  // Show our image inside it.
-        cv::waitKey(0);
-        cv::destroyAllWindows();
-    }
+    // if (showDiff) {
+    //     cv::imshow( "Evaluation", eval );                  // Show our image inside it.
+    //     cv::waitKey(0);
+    //     cv::destroyAllWindows();
+    // }
     evaluation =  eval;
 }
 
@@ -155,44 +155,74 @@ void MotionDetection::calculateROI() {
     static int prevArea = 640 * 480 / 3;
 
     // Erode the remaining noise
-    cv::Mat erode_noise = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-    cv::erode(accumulator, accumulator, erode_noise);
+    cv::erode(accumulator, accumulator, erodeKernel);
 
     // Dialate the remaining signal
-    cv::Mat dilateKernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(60, 60));
     cv::dilate(accumulator, accumulator, dilateKernel);
+
+    // NOTE: Uncomment this to view what the post-dilation view looks like
+    if (showDiff) {
+        cv::imshow("Accumulator", accumulator);
+        cv::waitKey(0);
+        cv::destroyAllWindows();
+    }
 
     // Create bitmask
     cv::Mat maskFrame = accumulator > 200;
 
-    double largest_area = 0;
-    int largest_contour = 0;
+    int largestArea = 0;
+    int largestContour = 0;
     std::vector<std::vector<cv::Point>> contours;
     findContours(maskFrame, contours, cv::noArray(), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
     for(unsigned int i = 0; i < contours.size(); i++ ) {
-        double area = cv::contourArea(contours[i], false);
-        if(area > largest_area) {
-            largest_area = area;
-            largest_contour = i;
+        int area = (int) (cv::contourArea(contours[i], false) + 0.5); // + 0.5 for rounding
+        if(area > largestArea) {
+            largestArea = area;
+            largestContour = i;
         }
     }
 
     if (contours.empty()) {
         printf("[info] Uhh....didn't see any motion....\n");
-        roi = cv::Rect(0, 0, 640, 480);
+        return;
     }
     else {
+        cv::Rect result = cv::boundingRect(contours[largestContour]);;
         // TODO: Add smoothing function here. We want to enforce some size
         // constrainst and not allow HUGE changes in frame size (which would
         // indicate a bad read, and that we should just stay the same until
         // next read).
-        roi = cv::boundingRect(contours[largest_contour]);
+        printf("[info] prevArea: %d, largestArea: %d\n", prevArea, largestArea);
+        if (largestArea >= 640 * 480 / 3) {
+            // NOTE: Just trying to crop down in a reasonable way. Making
+            // a 90k pixel square centered on the geometric center of the
+            // original bounding rect.
+            int c_x = result.x + result.width/2;
+            int c_y = result.y + result.height/2;
+            result = cv::Rect(c_x - 150, c_y - 150, 300, 300);
+            largestArea = 300 * 300;
+            // bool is_inside = (rect & cv::Rect(0, 0, mat.cols, mat.rows)) == rect;
+        }
+        else if (largestArea <= 640 * 480 / 20) {
+            // TODO: Too small, enlarging it slightly around the geometric center
+            int c_x = result.x + result.width/2;
+            int c_y = result.y + result.height/2;
+            result = cv::Rect(c_x - 100, c_y - 100, 200, 200);
+            largestArea = 200 * 200;
+        }
+
+        std::cout << result << std::endl;
+
+        // Smooth the changes, if any. No changes greather than 30%
+        if (std::abs(largestArea - prevArea) * 100 / prevArea <= 80) {
+            prevArea = largestArea;
+            printf("[info] Adjusting roi.\n");
+            roi = result;
+        }
     }
 
-    // NOTE: Uncomment this to view what the post-dilation view looks like
-    // cv::imshow("ORed", accumulator);
-    // cv::waitKey(0);
+
 }
 
 void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
@@ -246,7 +276,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             DifferentialCollins();
             monitorMotion();
             break;
-        case compute_roi_st:
+        case compute_roi_st: // spend 1 frame to just calculate ROI
             calculateROI();
             break;
         case valid_roi_st:
@@ -264,7 +294,12 @@ void MotionDetection::update(cv::Mat newFrame) {
     switch(currentState) {
         case init_st:
             if (initTimer >= framesToSettle) {
-                currentState = monitor_motion_st;
+                if (crop) {
+                    currentState = monitor_motion_st;
+                }
+                else {  // if crop is false, just hang out.
+                    currentState = idle_st;
+                }
                 initTimer = 0;
             }
             break;
@@ -276,8 +311,13 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case idle_st:
             if (validTimer >= roiUpdateInterval) {
-                currentState = reset_st;
-                reinitializeReisz(newFrame);
+                if (crop) {
+                    currentState = reset_st;
+                    reinitializeReisz(newFrame);
+                }
+                else {  // if crop is false, just hang out.
+                    currentState = idle_st;
+                }
                 validTimer = 0;
             }
             break;
@@ -292,7 +332,6 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case valid_roi_st:
             if (refillTimer >= MINIMUM_FRAMES) {
-                // std::cout << roi << std::endl;
                 currentState = idle_st;
                 reinitializeReisz(newFrame(roi));
                 refillTimer = 0;
@@ -314,13 +353,14 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     framesToSettle = cl.framesToSettle;
     roiUpdateInterval = cl.roiUpdateInterval;
     roiWindow = cl.roiWindow;
+    crop = cl.crop;
     roi = cv::Rect(cv::Point(0, 0), cv::Point(640, 480));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
+    dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
     accumulator = cv::Mat::zeros(480, 640, CV_8UC1);
 
     for (int i = 0; i < SPLIT; i++) {
         cl.apply(rt[i]);
         rt[i].fps(cl.fps);
     }
-
 }

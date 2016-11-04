@@ -142,6 +142,7 @@ CommandLine::CommandLine(int ac, char *av[])
     , sourceCount(0)
     , sinkCount(0)
     , erodeDimension(2)
+    , dilateDimension(60)
     , diffThreshold(5)
     , motionDuration(1)
     , pixelThreshold(10)
@@ -282,7 +283,10 @@ CommandLine::CommandLine(int ac, char *av[])
         ok = ok && frameHeight >= 240 && frameHeight <= 1080;
 
         erodeDimension = reader.GetInteger("motion", "erode_dim", 3);
-        ok = ok && erodeDimension && erodeDimension >= 0;
+        ok = ok && erodeDimension && erodeDimension > 0;
+
+        dilateDimension = reader.GetInteger("motion", "dilate_dim", 60);
+        ok = ok && dilateDimension && dilateDimension > 0;
 
         diffThreshold = reader.GetInteger("motion", "diff_threshold", 10);
         ok = ok && diffThreshold && diffThreshold >= 0;

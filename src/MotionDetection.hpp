@@ -17,11 +17,13 @@ private:
     cv::Mat frameBuffer[3];
     int frameCount;
     cv::Mat erodeKernel;
+    cv::Mat dilateKernel;
     cv::Mat evaluation;
     cv::Mat accumulator;
     cv::Rect roi;
     int diffThreshold;
     bool showDiff;
+    bool crop;
     int pixelThreshold;
     int motionDuration;
     unsigned framesToSettle;
