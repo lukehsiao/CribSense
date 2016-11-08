@@ -449,6 +449,15 @@ class RieszTransform {
 
 public:
 
+    void initialize(const cv::Mat &frame) {
+        static const double scaleFactor = 1.0 / 255.0;
+        frame.convertTo(itsFrame, CV_32F, scaleFactor);
+        cv::cvtColor(itsFrame, itsFrame, cv::COLOR_RGB2YCrCb);
+        std::vector<cv::Mat> channels; cv::split(itsFrame, channels);
+        itsCurrent.initialize(channels[0]);
+        itsPrior.initialize(channels[0]);
+    }
+
     // Set the frames per second which is the filter sampling frequency.
     //
     void fps(double fps) { itsBand.itsFps = fps; itsBand.computeFilter(); }

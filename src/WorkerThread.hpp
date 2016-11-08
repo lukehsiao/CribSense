@@ -1,3 +1,6 @@
+#ifndef __WorkerThread_H_INCLUDED__   // if WorkerThread.h hasn't been included yet...
+#define __WorkerThread_H_INCLUDED__   // #define this so the compiler knows it has been included
+
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -71,3 +74,5 @@ public:
         return std::move(fut);
     }
 };
+
+#endif
