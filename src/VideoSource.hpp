@@ -1,8 +1,17 @@
 #ifndef VIDEO_SOURCE_H_INCLUDED
 #define VIDEO_SOURCE_H_INCLUDED
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <linux/videodev2.h>
+#include <sys/sysmacros.h>
+#include <exception>
+
 #include <opencv2/highgui/highgui.hpp>
 
+#define V42L_MAJOR 0x51
 
 // Just cv::VideoCapture extended for convenience.
 //
@@ -12,6 +21,7 @@ class VideoSource: public cv::VideoCapture {
 
     const std::string itsFile;
     int itsCameraId;
+    int itsFd;
 
 public:
 
@@ -94,6 +104,33 @@ public:
         }
     }
 
+private:
+    int findCameraFd() {
+        for (int i = 0; i < 15; i++) {
+            struct stat buf;
+            if (fstat(i, &buf) >= 0) {
+                if (S_ISCHR(buf.st_mode) && major(buf.st_rdev) == V42L_MAJOR)
+                    return i;
+            }
+        }
+
+        fprintf(stderr, "Failed to find camera FD\n");
+        return -1;
+    }
+
+    void setCameraFps(int fps) {
+        struct v4l2_streamparm setfps;
+        memset (&setfps, 0, sizeof(struct v4l2_streamparm));
+
+        setfps.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        setfps.parm.capture.timeperframe.numerator = 1;
+        setfps.parm.capture.timeperframe.denominator = fps;
+
+        if (ioctl (itsFd, VIDIOC_S_PARM, &setfps) < 0)
+            throw std::system_error(errno, std::system_category());
+    }
+
+public:
     // If id is negative, open the video file named fileName.
     // Otherwise open the camera identified by id.
     //
@@ -106,9 +143,12 @@ public:
             this->open(itsFile);
         } else {
             this->open(itsCameraId);
-            set(CV_CAP_PROP_FPS, fps);
+            itsFd = findCameraFd();
+            //set(CV_CAP_PROP_FPS, fps);
             set(CV_CAP_PROP_FRAME_WIDTH, width);
             set(CV_CAP_PROP_FRAME_HEIGHT, height);
+            if (itsFd >= 0)
+                setCameraFps(fps);
         }
     }
 };
