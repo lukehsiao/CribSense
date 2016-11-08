@@ -23,6 +23,7 @@ private:
     cv::Rect roi;
     int diffThreshold;
     bool showDiff;
+    bool showMagnification;
     bool crop;
     int pixelThreshold;
     int motionDuration;

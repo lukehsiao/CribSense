@@ -87,6 +87,7 @@ CommandLine::CommandLine(int ac, char *av[])
     , highCutoff(1.0)
     , threshold(25.0)
     , showDiff(false)
+    , showMagnification(false)
     , about(false)
     , help(false)
     , ok(true)           // Check this before use.
@@ -184,6 +185,8 @@ CommandLine::CommandLine(int ac, char *av[])
         ok = ok && pixelThreshold && pixelThreshold >= 1;
 
         showDiff = reader.GetBoolean("motion", "show_diff", false);
+
+        showMagnification = reader.GetBoolean("magnification", "show_magnification", false);
 
         crop = reader.GetBoolean("cropping", "crop", false);
 

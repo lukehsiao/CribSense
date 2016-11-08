@@ -32,6 +32,7 @@ struct CommandLine {
     double highCutoff;               // The high frequency of the bandpass.
     double threshold;                // The phase threshold as % of pi.
     bool showDiff;                   // optionally show the diff between frames
+    bool showMagnification;          // optionally show the magnification output
     bool about;                      // True iff --about.
     bool help;                       // True iff --help.
     bool ok;                         // True if (ac, av) parse is valid.

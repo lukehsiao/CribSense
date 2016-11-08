@@ -133,11 +133,12 @@ cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
     for (int i = 0; i < SPLIT; i++) {
         out_sections[i] = futures[i].get();
     }
-
     cv::vconcat(out_sections, 3, result);
-    cv::imshow("result", result);
-    cv::waitKey(30);
 
+    if (showMagnification) {
+        cv::imshow("result", result);
+        cv::waitKey(30);
+    }
     return result;
 }
 
@@ -265,7 +266,6 @@ void MotionDetection::calculateROI() {
         // Smooth the changes, if any. No changes greather than 30%
         if (std::abs(largestArea - prevArea) * 100 / prevArea <= 80) {
             prevArea = largestArea;
-            std::cout << "[info] Adjusting roi to: " << result << std::endl;
             roi = result;
         }
     }
@@ -292,7 +292,7 @@ void MotionDetection::reinitializeReisz(cv::Mat frame) {
 
 void MotionDetection::update(cv::Mat newFrame) {
     // Print states to terminal for debugging
-    debugStatePrint();
+    // debugStatePrint();
 
     static unsigned initTimer = 0;
     static unsigned validTimer = 0;
@@ -315,6 +315,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case idle_st:
             validTimer++;
+            printf("[info] %d\n", isValidMotion());
             pushFrameBuffer(magnifyVideo(newFrame(roi)));
             DifferentialCollins();
             break;
@@ -396,6 +397,7 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     frameCount = 0;
     diffThreshold = cl.diffThreshold;
     showDiff = cl.showDiff;
+    showMagnification = cl.showMagnification;
     pixelThreshold = cl.pixelThreshold;
     motionDuration = cl.motionDuration;
     framesToSettle = cl.framesToSettle;
