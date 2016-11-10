@@ -32,6 +32,7 @@ private:
     unsigned framesToSettle;
     unsigned roiUpdateInterval;
     unsigned roiWindow;
+    double breathingRate;
     RieszTransform rt[SPLIT];
     WorkerThread<cv::Mat, RieszTransform*, cv::Mat> thread[SPLIT];
 
@@ -41,31 +42,59 @@ private:
      */
     void DifferentialCollins();
 
+    /**
+     * Erodes and dialates the motion pixels and determines where the
+     * largest area of motion is in the frame.
+     */
     void calculateROI();
 
+    /**
+     * Performs video magnification based on MIT's work. Requires that the
+     * frame buffer is filled with frames of the same size.
+     * @param  frame Input image to magnify.
+     * @return       Magnified version of the frame.
+     */
     cv::Mat magnifyVideo(cv::Mat frame);
 
+    /**
+     * Push a new frame to the frame buffer.
+     * @param newFrame [description]
+     */
     void pushFrameBuffer(cv::Mat newFrame);
 
+    /**
+     * Reset the ReiszTransforms. Uses the input frame just to get the
+     * correct sizes.
+     * @param frame Input frame to reference for sizing.
+     */
     void reinitializeReisz(cv::Mat frame);
 
+    /**
+     * Accumulate the bitwise OR in the accumulator each time it is called.
+     */
     void monitorMotion();
+
+    /**
+     * Return the number of pixel differences that pass the duration and
+     * difference thresholds for the current frame.
+     */
+    int countNumChanges();
 
 public:
 
+    /**
+     * Operates as the tick function of the state machine. Drives the state
+     * machine every time a new frame is provided from the video.
+     * @param newFrame Next unprocessed video frame.
+     */
     void update(cv::Mat newFrame);
 
-
-
-
     /**
-     * Given a new frame of video, update the frame buffer, use the Differential
-     * algorithm to compute an evaluation frame, and return the number of px
-     * that have changed.
-     * @param  newFrame The new frame of the video
-     * @return          The number of pixels that have changed this frame.
+     * Returns the current estimate breathing rate based on the pixel differences
+     * over a short time history.
+     * @return Approximate breathing rate.
      */
-    int isValidMotion();
+    double getBreathingRate(int newNumChanges);
 
     /**
      * Constructor sets motion detection params based on what was provided by

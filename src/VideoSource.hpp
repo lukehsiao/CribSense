@@ -106,6 +106,12 @@ public:
     }
 
 private:
+
+    /**
+     * The following two functions are the hack. First, just search through
+     * for the file descriptor for the camera, then set the camera FPS.
+     */
+
     int findCameraFd() {
         for (int i = 0; i < 15; i++) {
             struct stat buf;

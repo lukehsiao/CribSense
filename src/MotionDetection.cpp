@@ -71,7 +71,9 @@ void MotionDetection::DifferentialCollins() {
     evaluation =  eval;
 }
 
-int MotionDetection::isValidMotion() {
+int MotionDetection::countNumChanges() {
+    // TODO: Add the code here to track peaks and caluate a breathing rate estimate
+    // that is always up to date. Update the private breathingRate variable.
     if (currentState == idle_st) {
         int numberOfChanges = 0;
         cv::Rect rectangle(evaluation.cols, evaluation.rows, 0, 0);
@@ -104,6 +106,10 @@ int MotionDetection::isValidMotion() {
         }
     }
     return 0;
+}
+
+double MotionDetection::getBreathingRate() {
+    return breathingRate;
 }
 
 cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
@@ -310,7 +316,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case idle_st:
             validTimer++;
-            printf("[info] %d\n", isValidMotion());
+            printf("\r[info] Breathing Rate: %f", getBreathingRate());
             pushFrameBuffer(magnifyVideo(newFrame(roi)));
             DifferentialCollins();
             break;
@@ -401,6 +407,7 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     crop = cl.crop;
     frameWidth = cl.frameWidth;
     frameHeight = cl.frameHeight;
+    breathingRate = 0.0
     roi = cv::Rect(cv::Point(0, 0), cv::Point(cl.frameWidth, cl.frameHeight));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
