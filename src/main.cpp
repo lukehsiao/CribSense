@@ -2,6 +2,8 @@
 #include "MotionDetection.hpp"
 #include <fstream>
 
+#include <time.h>
+
 // Return true iff source.isOpened().
 //
 static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
@@ -16,6 +18,21 @@ static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
     return false;
 }
 
+static inline void print_time(const CommandLine& cl, uint64_t& time, char c) {
+	struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    uint64_t new_time = (uint64_t)((uint64_t)ts.tv_sec * 1000000 + (uint64_t)ts.tv_nsec / 1000);
+
+    if (time == 0) {
+        fprintf(stderr, "%c Start time: %llu\n", c, new_time);
+        time = new_time;
+    } else {
+	fprintf(stderr, "%c Delta: %llu\n", c, new_time - time);
+	time = new_time;
+    }
+}
+
 // Transform video in command-line or "batch" mode according to cl.
 // Return 0 on success or 1 on failure.
 //
@@ -24,22 +41,25 @@ static int batch(const CommandLine &cl)
     // Buffer of 3 frames for use with the DifferentialCollins algorithm.
     MotionDetection detector(cl);
 
-    time_t start, end;
-    time(&start);
+    uint64_t frame_time = 0;
     VideoSource source(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
     if (canReadInFile(cl, source)) {
+        print_time(cl, frame_time, 'A');
         for (;;) {
             // for each frame
             cv::Mat frame; const bool more = source.read(frame);
+            print_time(cl, frame_time, 'A');
             if (frame.empty()) {
+                print_time(cl, frame_time, 'B');
                 if (!more) {
-                    time(&end);
-                    double diff_t = difftime(end, start);
-                    printf("[info] time: %f\n", diff_t);
+                    //time(&end);
+                    //double diff_t = difftime(end, start);
+                    //printf("[info] time: %f\n", diff_t);
                     return 0;
                 }
             } else {
                 detector.update(frame);
+                print_time(cl, frame_time, 'B');
             }
         }
     }
