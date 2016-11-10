@@ -68,11 +68,6 @@ void MotionDetection::DifferentialCollins() {
     // erode
     // cv::erode(eval, eval, erodeKernel);
 
-    // if (showDiff) {
-    //     cv::imshow( "Evaluation", eval );                  // Show our image inside it.
-    //     cv::waitKey(0);
-    //     cv::destroyAllWindows();
-    // }
     evaluation =  eval;
 }
 
@@ -137,7 +132,7 @@ cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
 
     if (showMagnification) {
         cv::imshow("result", result);
-        cv::waitKey(30);
+        cv::waitKey(1);
     }
     return result;
 }
