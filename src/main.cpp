@@ -28,8 +28,8 @@ static inline void print_time(const CommandLine& cl, uint64_t& time, char c) {
         fprintf(stderr, "%c Start time: %llu\n", c, new_time);
         time = new_time;
     } else {
-	fprintf(stderr, "%c Delta: %llu\n", c, new_time - time);
-	time = new_time;
+    	fprintf(stderr, "%c Delta: %llu\n", c, new_time - time);
+    	time = new_time;
     }
 }
 
@@ -44,22 +44,20 @@ static int batch(const CommandLine &cl)
     uint64_t frame_time = 0;
     VideoSource source(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
     if (canReadInFile(cl, source)) {
-        print_time(cl, frame_time, 'A');
+        // print_time(cl, frame_time, 'A');
         for (;;) {
             // for each frame
             cv::Mat frame; const bool more = source.read(frame);
-            print_time(cl, frame_time, 'A');
+            // print_time(cl, frame_time, 'A');
             if (frame.empty()) {
-                print_time(cl, frame_time, 'B');
+                // print_time(cl, frame_time, 'B');
                 if (!more) {
-                    //time(&end);
-                    //double diff_t = difftime(end, start);
-                    //printf("[info] time: %f\n", diff_t);
+                    // printf("[info] Video finsihed.\n");
                     return 0;
                 }
             } else {
                 detector.update(frame);
-                print_time(cl, frame_time, 'B');
+                // print_time(cl, frame_time, 'B');
             }
         }
     }
