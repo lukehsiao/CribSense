@@ -94,7 +94,7 @@ public:
      * over a short time history.
      * @return Approximate breathing rate.
      */
-    double getBreathingRate(int newNumChanges);
+    double getBreathingRate();
 
     /**
      * Constructor sets motion detection params based on what was provided by

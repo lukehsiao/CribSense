@@ -1,5 +1,6 @@
 #include <opencv2/opencv.hpp>
 #include "MotionDetection.hpp"
+#include <time.h>
 
 enum motionDetection_st {
     init_st,            // enter this state while waiting for frames to settle
@@ -74,6 +75,12 @@ void MotionDetection::DifferentialCollins() {
 int MotionDetection::countNumChanges() {
     // TODO: Add the code here to track peaks and caluate a breathing rate estimate
     // that is always up to date. Update the private breathingRate variable.
+    const int PEAK_WINDOW = 11;
+    static int lastPixelCount = 0;
+    static int lastTimestamp = 0;
+    static unsigned tailIndex = 0;
+    static uint64_t periods[PEAK_WINDOW] = {0};
+
     if (currentState == idle_st) {
         int numberOfChanges = 0;
         cv::Rect rectangle(evaluation.cols, evaluation.rows, 0, 0);
@@ -96,6 +103,24 @@ int MotionDetection::countNumChanges() {
         if (numberOfChanges >= pixelThreshold) {
             duration++;
             if (duration >= motionDuration) {
+                if (numberOfChanges < lastPixelCount) {
+                    struct timespec ts;
+                    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+                    // time in microseconds
+                    uint64_t timestamp = (uint64_t)((uint64_t)ts.tv_sec * 1000000 + (uint64_t)ts.tv_nsec / 1000);
+
+                    periods[tailIndex % PEAK_WINDOW] = timestamp - lastTimestamp;
+                    uint64_t sorted[PEAK_WINDOW];
+                    // Make a copy that I can then sort
+                    for (int i = 0; i < PEAK_WINDOW; i++) {
+                        sorted[i] = periods[i];
+                    }
+                    std::sort(sorted, sorted + PEAK_WINDOW);
+                    breathingRate = 1 / sorted[PEAK_WINDOW/2];
+                    lastTimestamp = timestamp;
+                    tailIndex++;
+                }
                 return numberOfChanges;
             }
         }
@@ -104,6 +129,7 @@ int MotionDetection::countNumChanges() {
                 duration--;
             }
         }
+        lastPixelCount = numberOfChanges;
     }
     return 0;
 }
@@ -316,7 +342,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case idle_st:
             validTimer++;
-            printf("\r[info] Breathing Rate: %f", getBreathingRate());
+            printf("[info] Pixel Movement: %d\t [info] Breathing Rate: %f\n", countNumChanges(),  getBreathingRate());
             pushFrameBuffer(magnifyVideo(newFrame(roi)));
             DifferentialCollins();
             break;
@@ -407,7 +433,7 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     crop = cl.crop;
     frameWidth = cl.frameWidth;
     frameHeight = cl.frameHeight;
-    breathingRate = 0.0
+    breathingRate = 0.0;
     roi = cv::Rect(cv::Point(0, 0), cv::Point(cl.frameWidth, cl.frameHeight));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
