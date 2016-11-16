@@ -115,6 +115,7 @@ CommandLine::CommandLine(int ac, char *av[])
         } else if ("--config" == arg && (ok = ++i < ac)) {
             config_path = av[i];
             use_config_file = true;
+            ok = true;
             break;
         } else {
             std::cerr << std::endl << program << ": Bad option '" << arg << "'"
@@ -142,10 +143,11 @@ CommandLine::CommandLine(int ac, char *av[])
             ok = ok && sourceCount == 0;
             ++sourceCount;
         }
+
         int input_cameraID = reader.GetInteger("io", "camera", -1);
         if (input_cameraID != -1) {
             cameraId = input_cameraID;
-            ok = ok && cameraId && cameraId >= 0 && sourceCount == 0;
+            ok = ok && cameraId >= 0 && sourceCount == 0;
             ++sourceCount;
         }
 
@@ -169,6 +171,7 @@ CommandLine::CommandLine(int ac, char *av[])
         frameHeight = reader.GetInteger("io", "height", 480);
         ok = ok && frameHeight >= 240 && frameHeight <= 1080;
 
+
         erodeDimension = reader.GetInteger("motion", "erode_dim", 3);
         ok = ok && erodeDimension && erodeDimension > 0;
 
@@ -191,13 +194,17 @@ CommandLine::CommandLine(int ac, char *av[])
         crop = reader.GetBoolean("cropping", "crop", false);
 
         framesToSettle = reader.GetInteger("cropping", "frames_to_settle", 10);
-        ok = framesToSettle && framesToSettle >= 1;
+        ok = ok && framesToSettle && framesToSettle >= 1;
+
+        timeToAlarm = reader.GetInteger("io", "time_to_alarm", 10);
+        ok = ok && timeToAlarm && timeToAlarm > 1;
 
         roiWindow = reader.GetInteger("cropping", "roi_window", 10);
-        ok = roiWindow && roiWindow >= 1;
+        ok = ok && roiWindow && roiWindow >= 1;
 
         roiUpdateInterval = reader.GetInteger("cropping", "roi_update_interval", 100);
-        ok = roiUpdateInterval && roiUpdateInterval >= roiWindow;
+        ok = ok && roiUpdateInterval && roiUpdateInterval >= roiWindow;
+
 
         about = reader.GetBoolean("io", "about", false);
         help = reader.GetBoolean("io", "help", false);

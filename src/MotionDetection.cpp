@@ -99,7 +99,7 @@ void MotionDetection::calculatePeriod() {
 }
 
 void MotionDetection::soundAlarm() {
-    
+    printf("[ERROR] >>>>>  NO MOVEMENT DETECTED!!!!!!\n\n");
 }
 
 unsigned MotionDetection::countNumChanges() {
@@ -116,6 +116,9 @@ unsigned MotionDetection::countNumChanges() {
 
     static unsigned lastEWMA = 0;
     static bool wasRising = true;
+
+    static unsigned lastZeroStartTime;
+    static bool noMovementDetected = false;
 
     cv::Mat frameErode = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
     // Erode the remaining noise
@@ -156,6 +159,7 @@ unsigned MotionDetection::countNumChanges() {
                     wasRising = true;
                 }
                 lastEWMA = ewma;
+                noMovementDetected = false;
                 return ewma;
             }
         }
@@ -164,6 +168,21 @@ unsigned MotionDetection::countNumChanges() {
                 duration--;
             }
         }
+    }
+    if (noMovementDetected) {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        unsigned timestamp = ((unsigned)(ts.tv_sec));
+        unsigned elapsedTime = timestamp - lastZeroStartTime;
+        if (elapsedTime >= timeToAlarm) {
+            soundAlarm();
+        }
+    }
+    else {
+        noMovementDetected = true;
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        lastZeroStartTime = ((unsigned)(ts.tv_sec));
     }
     return 0;
 }
@@ -466,6 +485,7 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     frameWidth = cl.frameWidth;
     frameHeight = cl.frameHeight;
     breathingRate = 1.0;
+    timeToAlarm = cl.timeToAlarm;
     roi = cv::Rect(cv::Point(0, 0), cv::Point(cl.frameWidth, cl.frameHeight));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));

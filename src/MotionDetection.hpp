@@ -30,6 +30,7 @@ private:
     int motionDuration;
     int frameWidth;
     int frameHeight;
+    unsigned timeToAlarm;
     unsigned framesToSettle;
     unsigned roiUpdateInterval;
     unsigned roiWindow;
