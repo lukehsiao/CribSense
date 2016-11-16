@@ -23,6 +23,7 @@ struct CommandLine {
     int motionDuration;              // # of frames motion must be detected.
     int pixelThreshold;              // # of pixels that must be different
                                      //   to be flagged as motion.
+    unsigned timeToAlarm;            // # of seconds to wait before sounding alarm.
     unsigned framesToSettle;         // # frames to ignore on startup and reset
     unsigned roiUpdateInterval;      // # frames between roi updates
     unsigned roiWindow;              // # frames to consider when calculating roi
