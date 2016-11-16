@@ -10,6 +10,7 @@
 
 #define MINIMUM_FRAMES 3
 #define SPLIT 3
+#define NSEC_PER_SEC 1000000
 
 class MotionDetection {
 
@@ -78,7 +79,26 @@ private:
      * Return the number of pixel differences that pass the duration and
      * difference thresholds for the current frame.
      */
-    int countNumChanges();
+    unsigned countNumChanges();
+
+    /**
+     * When a peak is detected, this is called so that the times can be logged
+     * to calculate the breathing rate.
+     */
+    void calculatePeriod();
+
+    /**
+     * Returns the current estimate breathing rate based on the pixel differences
+     * over a short time history.
+     * @return Approximate breathing rate.
+     */
+    double getBreathingRate();
+
+    /**
+     * If no motion is detected for a period of time, call this function to
+     * sound an alarm!
+     */
+    void soundAlarm();
 
 public:
 
@@ -88,13 +108,6 @@ public:
      * @param newFrame Next unprocessed video frame.
      */
     void update(cv::Mat newFrame);
-
-    /**
-     * Returns the current estimate breathing rate based on the pixel differences
-     * over a short time history.
-     * @return Approximate breathing rate.
-     */
-    double getBreathingRate();
 
     /**
      * Constructor sets motion detection params based on what was provided by

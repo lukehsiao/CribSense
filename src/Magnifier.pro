@@ -6,8 +6,7 @@
 
 QT += core gui widgets
 CONFIG += c++11 debug
-QMAKE_CXXFLAGS += -O3 -pthread
-QMAKE_CXXFLAGS += -mfloat-abi=hard -mtune=cortex-a53 -mfpu=crypto-neon-fp-armv8 -funsafe-math-optimizations -fno-trapping-math -fno-signaling-nans
+QMAKE_CXXFLAGS += -O3 -pthread -lrt
 TARGET = Magnifier
 TEMPLATE = app
 LIBS += -pthread
@@ -15,7 +14,6 @@ LIBS += -pthread
 HEADERS += \
     VideoSource.hpp \
     CommandLine.hpp \
-    DisplayWidget.hpp \
     RieszTransform.hpp \
     ComplexMat.hpp \
     Butterworth.hpp \
