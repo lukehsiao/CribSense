@@ -31,6 +31,7 @@ SOURCES += \
     ini.c \
     MotionDetection.cpp \
     main.cpp \
+    VideoSource.cpp \
     #
 
 CV2_INCLUDE = `pkg-config --cflags opencv`
