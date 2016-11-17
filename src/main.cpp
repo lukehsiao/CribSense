@@ -5,20 +5,6 @@
 
 #include <time.h>
 
-// Return true iff source.isOpened().
-//
-static bool canReadInFile(const CommandLine &cl, const VideoSource &source)
-{
-    if (source.isOpened()) return true;
-    if (source.isFile()) {
-        std::cerr << cl.program << ": Cannot read file: " << cl.inFile;
-    } else {
-        std::cerr << cl.program << ": Cannot use camera: " << cl.cameraId;
-    }
-    std::cerr << std::endl;
-    return false;
-}
-
 static inline void print_time(const CommandLine& cl, uint64_t& time, char c) {
 	struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -44,27 +30,24 @@ static int batch(const CommandLine &cl)
 
     uint64_t frame_time = 0;
     VideoSource source(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
-    if (canReadInFile(cl, source)) {
+    print_time(cl, frame_time, 'A');
+    for (;;) {
+        // for each frame
+        cv::Mat frame; const bool more = source.read(frame);
         print_time(cl, frame_time, 'A');
-        for (;;) {
-            // for each frame
-            cv::Mat frame; const bool more = source.read(frame);
-            print_time(cl, frame_time, 'A');
-            if (frame.empty()) {
-                print_time(cl, frame_time, 'B');
-                if (!more) {
-                    //time(&end);
-                    //double diff_t = difftime(end, start);
-                    //printf("[info] time: %f\n", diff_t);
-                    return 0;
-                }
-            } else {
-                detector.update(frame);
-                print_time(cl, frame_time, 'B');
+        if (frame.empty()) {
+            print_time(cl, frame_time, 'B');
+            if (!more) {
+                //time(&end);
+                //double diff_t = difftime(end, start);
+                //printf("[info] time: %f\n", diff_t);
+                return 0;
             }
+        } else {
+            detector.update(frame);
+            print_time(cl, frame_time, 'B');
         }
     }
-    return 1; // error condition
 }
 
 int main(int argc, char *argv[])
