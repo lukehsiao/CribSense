@@ -1,6 +1,7 @@
 #include "VideoSource.hpp"
 #include "MotionDetection.hpp"
 #include <fstream>
+#include <inttypes.h>
 
 #include <time.h>
 
@@ -25,10 +26,10 @@ static inline void print_time(const CommandLine& cl, uint64_t& time, char c) {
     uint64_t new_time = (uint64_t)((uint64_t)ts.tv_sec * 1000000 + (uint64_t)ts.tv_nsec / 1000);
 
     if (time == 0) {
-        fprintf(stderr, "%c Start time: %llu\n", c, new_time);
+        fprintf(stderr, "%c Start time: %" PRIu64 "\n", c, new_time);
         time = new_time;
     } else {
-	fprintf(stderr, "%c Delta: %llu\n", c, new_time - time);
+	fprintf(stderr, "%c Delta: %" PRIu64 "\n", c, new_time - time);
 	time = new_time;
     }
 }
