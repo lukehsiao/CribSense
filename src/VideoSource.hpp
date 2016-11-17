@@ -8,6 +8,7 @@
 #include <linux/videodev2.h>
 #include <sys/sysmacros.h>
 #include <exception>
+#include <system_error>
 
 #include <opencv2/highgui/highgui.hpp>
 
