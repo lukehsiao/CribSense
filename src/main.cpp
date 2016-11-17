@@ -5,7 +5,7 @@
 
 #include <time.h>
 
-static inline void print_time(const CommandLine& cl, uint64_t& time, char c) {
+static inline void print_time(uint64_t& time, char c) {
 	struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
 
@@ -28,15 +28,15 @@ static int batch(const CommandLine &cl)
     // Buffer of 3 frames for use with the DifferentialCollins algorithm.
     MotionDetection detector(cl);
 
-    // uint64_t frame_time = 0;
+    uint64_t frame_time = 0;
     VideoSource source(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
-    print_time(cl, frame_time, 'A');
+    print_time(frame_time, 'A');
     for (;;) {
         // for each frame
         cv::Mat frame; const bool more = source.read(frame);
-        print_time(cl, frame_time, 'A');
+        print_time(frame_time, 'A');
         if (frame.empty()) {
-            print_time(cl, frame_time, 'B');
+            print_time(frame_time, 'B');
             if (!more) {
                 //time(&end);
                 //double diff_t = difftime(end, start);
@@ -45,7 +45,7 @@ static int batch(const CommandLine &cl)
             }
         } else {
             detector.update(frame);
-            print_time(cl, frame_time, 'B');
+            print_time(frame_time, 'B');
         }
     }
 }
