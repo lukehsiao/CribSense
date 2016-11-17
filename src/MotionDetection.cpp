@@ -51,6 +51,20 @@ void debugStatePrint() {
     }
 }
 
+static inline double get_time_ms() {
+	struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    return ((double)(ts.tv_sec * 1000) + ts.tv_nsec / 1000000);
+}
+
+static inline unsigned get_time_sec() {
+	struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    return (unsigned) ts.tv_sec;
+}
+
 void MotionDetection::DifferentialCollins() {
     cv::Mat h_d1;
     cv::Mat h_d2;
@@ -75,16 +89,11 @@ void MotionDetection::DifferentialCollins() {
 void MotionDetection::calculatePeriod() {
     // weight of the exponentially-weighted moving average. Higher ratio gives
     // more weight to more recent samples.
-    const double ALPHA = 0.2;
+    const double ALPHA = 0.4;
+    static double lastTimestamp = get_time_ms();
 
-    struct timespec init_ts;
-    clock_gettime(CLOCK_MONOTONIC, &init_ts);
-    static double lastTimestamp = ((double)(init_ts.tv_sec * 1000) + init_ts.tv_nsec / 1000000);
-
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
     // get time in milliseconds
-    double timestamp = ((double)(ts.tv_sec * 1000) + ts.tv_nsec / 1000000);
+    double timestamp = get_time_ms();
 
     // amount of time that has passed between peaks
     double period = timestamp - lastTimestamp;
@@ -170,19 +179,19 @@ unsigned MotionDetection::countNumChanges() {
         }
     }
     if (noMovementDetected) {
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        unsigned timestamp = ((unsigned)(ts.tv_sec));
+        unsigned timestamp = get_time_sec();
         unsigned elapsedTime = timestamp - lastZeroStartTime;
+        printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
+        printf("[info]    timestamp:         %u\n", timestamp);
+        printf("[info]    elapsedTime:       %u\n", elapsedTime);
         if (elapsedTime >= timeToAlarm) {
             soundAlarm();
         }
     }
     else {
         noMovementDetected = true;
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        lastZeroStartTime = ((unsigned)(ts.tv_sec));
+        lastZeroStartTime = get_time_sec();
+        printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
     }
     return 0;
 }
