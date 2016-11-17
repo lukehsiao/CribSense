@@ -69,11 +69,16 @@ static int batch(const CommandLine &cl)
 
 int main(int argc, char *argv[])
 {
-    const CommandLine cl(argc, argv);
-    if (cl.help || cl.about) return 0;
-    if (cl.ok) {
-        printf("[info] starting batch processing.\n");
-        if (cl.sourceCount) return batch(cl);
+    try {
+        const CommandLine cl(argc, argv);
+        if (cl.help || cl.about) return 0;
+        if (cl.ok) {
+            printf("[info] starting batch processing.\n");
+            if (cl.sourceCount) return batch(cl);
+        }
+    } catch (const std::runtime_error& e) {
+        // die gracefully for uncaught runtime errors
+        std::cerr << "System error: " << e.what() << std::endl;
     }
     return 1;
 }
