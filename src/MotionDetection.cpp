@@ -181,9 +181,9 @@ unsigned MotionDetection::countNumChanges() {
     if (noMovementDetected) {
         unsigned timestamp = get_time_sec();
         unsigned elapsedTime = timestamp - lastZeroStartTime;
-        printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
-        printf("[info]    timestamp:         %u\n", timestamp);
-        printf("[info]    elapsedTime:       %u\n", elapsedTime);
+        // printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
+        // printf("[info]    timestamp:         %u\n", timestamp);
+        // printf("[info]    elapsedTime:       %u\n", elapsedTime);
         if (elapsedTime >= timeToAlarm) {
             soundAlarm();
         }
@@ -191,7 +191,7 @@ unsigned MotionDetection::countNumChanges() {
     else {
         noMovementDetected = true;
         lastZeroStartTime = get_time_sec();
-        printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
+        // printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
     }
     return 0;
 }
