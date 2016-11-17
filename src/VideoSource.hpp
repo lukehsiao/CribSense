@@ -35,6 +35,7 @@ class VideoSource {
     int itsWidth, itsHeight, itsStride, itsBufferSize;
     std::vector<mmap_buffer> itsBuffers;
     int itsNextBuffer;
+    int itsCurrentBuffer;
 
     void negotiateFormat();
     void startStreaming();

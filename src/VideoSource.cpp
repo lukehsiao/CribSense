@@ -90,7 +90,8 @@ VideoSource::negotiateFormat() {
     // RieszTransform calls cvtColor with RGB2...
     // which means it expects R - G - B in this byte order
     // regardless of endianess
-    format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+    //format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+    format.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
     format.fmt.pix.bytesperline = 0;
 
     check_return(ioctl (itsCameraFd, VIDIOC_S_FMT, &format));
@@ -168,6 +169,7 @@ VideoSource::VideoSource(int id, const std::string &fileName, int fps, int width
     , itsHeight(height)
     , itsStride(3 * width)
     , itsNextBuffer(0)
+    , itsCurrentBuffer(-1)
 {
     if (id >= 0) {
         checkCapabilities(itsCameraFd);
@@ -192,8 +194,19 @@ VideoSource::read(cv::Mat& into) {
     if (isFile())
         return itsFileCapture.read(into);
 
-
     struct v4l2_buffer buffer_info;
+
+    // release the current buffer
+    if (itsCurrentBuffer >= 0) {
+        memset (&buffer_info, 0, sizeof(struct v4l2_buffer));
+        buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buffer_info.memory = V4L2_MEMORY_MMAP;
+        buffer_info.index = itsCurrentBuffer;
+
+        // let the driver fill the next buffer while we process this one
+        check_return(ioctl (itsCameraFd, VIDIOC_QBUF, &buffer_info));
+    }
+
     memset (&buffer_info, 0, sizeof(struct v4l2_buffer));
 
     buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -207,14 +220,8 @@ VideoSource::read(cv::Mat& into) {
     mmap_buffer& mmapped = itsBuffers[itsNextBuffer];
     cv::Mat frame(itsHeight, itsWidth, CV_8UC3, mmapped.get(), itsStride);
 
-    itsNextBuffer = (itsNextBuffer + 1) % NUM_BUFFERS;
-    memset (&buffer_info, 0, sizeof(struct v4l2_buffer));
-    buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buffer_info.memory = V4L2_MEMORY_MMAP;
-    buffer_info.index = itsNextBuffer;
-
-    // let the driver fill the next buffer while we process this one
-    check_return(ioctl (itsCameraFd, VIDIOC_QBUF, &buffer_info));
+    itsCurrentBuffer = itsNextBuffer;
+    itsNextBuffer = (itsNextBuffer + 1) % itsBuffers.size();
 
     into = std::move(frame);
     return true;
