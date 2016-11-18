@@ -452,10 +452,8 @@ public:
     void initialize(const cv::Mat &frame) {
         static const double scaleFactor = 1.0 / 255.0;
         frame.convertTo(itsFrame, CV_32F, scaleFactor);
-        cv::cvtColor(itsFrame, itsFrame, cv::COLOR_RGB2YCrCb);
-        std::vector<cv::Mat> channels; cv::split(itsFrame, channels);
-        itsCurrent.initialize(channels[0]);
-        itsPrior.initialize(channels[0]);
+        itsCurrent.initialize(itsFrame);
+        itsPrior.initialize(itsFrame);
     }
 
     // Set the frames per second which is the filter sampling frequency.
@@ -481,21 +479,17 @@ public:
         static const double PI_PERCENT = M_PI / 100.0;
         static const double scaleFactor = 1.0 / 255.0;
         frame.convertTo(itsFrame, CV_32F, scaleFactor);
-        cv::cvtColor(itsFrame, itsFrame, cv::COLOR_RGB2YCrCb);
-        std::vector<cv::Mat> channels; cv::split(itsFrame, channels);
         cv::Mat result;
         if (itsCurrent) {
-            itsCurrent.build(channels[0]);
+            itsCurrent.build(itsFrame);
             itsCurrent.unwrapOrientPhase(itsPrior);
             itsBand.filterPyramids(itsCurrent, itsPrior);
             itsCurrent.amplify(itsAlpha, itsThreshold * PI_PERCENT);
-            channels[0] = itsCurrent.collapse();
-            cv::merge(channels, result);
-            cv::cvtColor(result, result, cv::COLOR_YCrCb2RGB);
-            result.convertTo(result, CV_8UC3, 255);
+            itsFrame = itsCurrent.collapse();
+            itsFrame.convertTo(result, CV_8UC1, 255);
         } else {
-            itsCurrent.initialize(channels[0]);
-            itsPrior.initialize(channels[0]);
+            itsCurrent.initialize(itsFrame);
+            itsPrior.initialize(itsFrame);
             frame.copyTo(result);
         }
         return std::move(result);
