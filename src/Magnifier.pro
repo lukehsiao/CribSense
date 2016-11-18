@@ -31,6 +31,7 @@ SOURCES += \
     INIReader.cpp \
     ini.c \
     MotionDetection.cpp \
+    RieszTransform.cpp \
     main.cpp \
     VideoSource.cpp \
     #
