@@ -1,12 +1,14 @@
 #ifndef MOTIONDETECTION_H_INCLUDED
 #define MOTIONDETECTION_H_INCLUDED
 
+#include <future>
 #include <opencv2/opencv.hpp>
+#include <canberra.h>
+
 #include "CommandLine.hpp"
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
 #include "WorkerThread.hpp"
-#include <future>
 
 #define MINIMUM_FRAMES 3
 #define SPLIT 3
@@ -37,6 +39,7 @@ private:
     double breathingRate;
     RieszTransform rt[SPLIT];
     WorkerThread<cv::Mat, RieszTransform*, cv::Mat> thread[SPLIT];
+    ca_context *snd_context;
 
     /**
      * Use simple image diffs over 3 frames to create a black/white evaulation

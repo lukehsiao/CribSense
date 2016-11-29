@@ -1,7 +1,8 @@
-#include "VideoSource.hpp"
-#include "MotionDetection.hpp"
 #include <fstream>
 #include <inttypes.h>
+
+#include "VideoSource.hpp"
+#include "MotionDetection.hpp"
 
 #include <time.h>
 

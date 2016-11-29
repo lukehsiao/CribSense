@@ -35,8 +35,8 @@ SOURCES += \
     VideoSource.cpp \
     #
 
-CV2_INCLUDE = `pkg-config --cflags opencv`
-CV2_LIB = `pkg-config --libs opencv`
+CV2_INCLUDE = `pkg-config --cflags opencv libcanberra`
+CV2_LIB = `pkg-config --libs opencv libcanberra`
 CPPFLAGS += $$CV2_INCLUDE
 LIBS += $$CV2_LIB
 

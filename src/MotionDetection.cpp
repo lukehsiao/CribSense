@@ -108,6 +108,12 @@ void MotionDetection::calculatePeriod() {
 }
 
 void MotionDetection::soundAlarm() {
+    int playing;
+
+    ca_context_playing(snd_context, 0, &playing);
+    if (playing == 0)
+        ca_context_play(snd_context, 0, CA_PROP_EVENT_ID, "alarm-clock-elapsed", nullptr);
+
     printf("[ERROR] >>>>>  NO MOVEMENT DETECTED!!!!!!\n\n");
 }
 
@@ -499,6 +505,9 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
     accumulator = cv::Mat::zeros(cl.frameHeight, cl.frameWidth, CV_8UC1);
+
+    ca_context_create(&snd_context);
+    ca_context_open(snd_context);
 
     for (int i = 0; i < SPLIT; i++) {
         cl.apply(rt[i]);
