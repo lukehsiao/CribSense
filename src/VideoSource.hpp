@@ -68,6 +68,10 @@ public:
     VideoSource(const VideoSource&) = delete;
     VideoSource(VideoSource&&) = delete;
 
+    // Read the next frame into the provided matrix
+    // Only the Y channel is provided, and the result is a CV_8UC1 matrix
+    //
+    // Returns true if more frames are available in the input source, false when done
     bool read(cv::Mat& into);
 };
 

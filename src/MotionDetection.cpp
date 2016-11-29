@@ -365,7 +365,6 @@ void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
         frameBuffer[i] = frameBuffer[i + 1];
     }
     frameBuffer[MINIMUM_FRAMES-1] = newFrame;
-    cv::cvtColor(frameBuffer[MINIMUM_FRAMES-1], frameBuffer[MINIMUM_FRAMES-1], CV_BGR2GRAY);
 }
 
 void MotionDetection::reinitializeReisz(cv::Mat frame) {
