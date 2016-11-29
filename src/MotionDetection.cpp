@@ -1,5 +1,6 @@
 #include <opencv2/opencv.hpp>
 #include "MotionDetection.hpp"
+#include <time.h>
 
 enum motionDetection_st {
     init_st,            // enter this state while waiting for frames to settle
@@ -50,6 +51,20 @@ void debugStatePrint() {
     }
 }
 
+static inline double get_time_ms() {
+	struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    return ((double)(ts.tv_sec * 1000) + ts.tv_nsec / 1000000);
+}
+
+static inline unsigned get_time_sec() {
+	struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    return (unsigned) ts.tv_sec;
+}
+
 void MotionDetection::DifferentialCollins() {
     cv::Mat h_d1;
     cv::Mat h_d2;
@@ -71,10 +86,55 @@ void MotionDetection::DifferentialCollins() {
     evaluation =  eval;
 }
 
-int MotionDetection::isValidMotion() {
+void MotionDetection::calculatePeriod() {
+    // weight of the exponentially-weighted moving average. Higher ratio gives
+    // more weight to more recent samples.
+    const double ALPHA = 0.4;
+    static double lastTimestamp = get_time_ms();
+
+    // get time in milliseconds
+    double timestamp = get_time_ms();
+
+    // amount of time that has passed between peaks
+    double period = timestamp - lastTimestamp;
+    // TODO: This is what is trying to deal with the bimodal nature of the Movement
+    // of breathing (movement while inhale, still, movement while exhale quickly after)
+    // As a side effect, this limits the maximum frequency we detect.
+    if (period > 400) { // low-pass filter of peaks occuring faster than 400ms apart
+        double newRate = 1.0 / (period / 1000);
+        breathingRate = ALPHA * newRate + (1 - ALPHA) * breathingRate;
+        lastTimestamp = timestamp;
+    }
+}
+
+void MotionDetection::soundAlarm() {
+    printf("[ERROR] >>>>>  NO MOVEMENT DETECTED!!!!!!\n\n");
+}
+
+unsigned MotionDetection::countNumChanges() {
+    /**
+     * NOTE: We are using an exponentially-weighted moving average to smooth
+     * out the data here. Otherwise, the data has a high-frequency component
+     * that makes peak detection more difficult.
+     */
+    static unsigned ewma = 0;
+
+    // weight of the exponentially-weighted moving average. Higher ratio gives
+    // more weight to more recent samples.
+    const double ALPHA = 0.3;
+
+    static unsigned lastEWMA = 0;
+    static bool wasRising = true;
+
+    static unsigned lastZeroStartTime;
+    static bool noMovementDetected = false;
+
+    cv::Mat frameErode = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
+    // Erode the remaining noise
+    cv::erode(evaluation, evaluation, frameErode);
+
     if (currentState == idle_st) {
         int numberOfChanges = 0;
-        cv::Rect rectangle(evaluation.cols, evaluation.rows, 0, 0);
 
         // -----------------------------------
         // loop over image and detect changes
@@ -94,7 +154,22 @@ int MotionDetection::isValidMotion() {
         if (numberOfChanges >= pixelThreshold) {
             duration++;
             if (duration >= motionDuration) {
-                return numberOfChanges;
+                // Update the moving average
+                ewma = ALPHA * (double)numberOfChanges + (1 - ALPHA) * (double)ewma;
+
+                // The first time a fall is detected (signifying a peak) log the
+                // time and calculate a breathing rate. Then, wait until we
+                // are rising again before looking for another fall.
+                if ((ewma < lastEWMA) && wasRising) {
+                    calculatePeriod();
+                    wasRising = false;
+                }
+                else if ((ewma > lastEWMA) && !wasRising) {
+                    wasRising = true;
+                }
+                lastEWMA = ewma;
+                noMovementDetected = false;
+                return ewma;
             }
         }
         else {
@@ -103,7 +178,26 @@ int MotionDetection::isValidMotion() {
             }
         }
     }
+    if (noMovementDetected) {
+        unsigned timestamp = get_time_sec();
+        unsigned elapsedTime = timestamp - lastZeroStartTime;
+        // printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
+        // printf("[info]    timestamp:         %u\n", timestamp);
+        // printf("[info]    elapsedTime:       %u\n", elapsedTime);
+        if (elapsedTime >= timeToAlarm) {
+            soundAlarm();
+        }
+    }
+    else {
+        noMovementDetected = true;
+        lastZeroStartTime = get_time_sec();
+        // printf("[info]    lastZeroStartTime: %u\n", lastZeroStartTime);
+    }
     return 0;
+}
+
+double MotionDetection::getBreathingRate() {
+    return breathingRate;
 }
 
 cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
@@ -136,7 +230,6 @@ cv::Mat MotionDetection::magnifyVideo(cv::Mat frame) {
     }
     return result;
 }
-
 
 void MotionDetection::monitorMotion() {
     if (currentState == reset_st) {
@@ -310,7 +403,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case idle_st:
             validTimer++;
-            printf("[info] %d\n", isValidMotion());
+            printf("[info] Pixel Movement: %d\t [info] Breathing Rate: %f\n", countNumChanges(),  getBreathingRate());
             pushFrameBuffer(magnifyVideo(newFrame(roi)));
             DifferentialCollins();
             break;
@@ -387,7 +480,6 @@ void MotionDetection::update(cv::Mat newFrame) {
     }
 }
 
-
 MotionDetection::MotionDetection(const CommandLine &cl) {
     frameCount = 0;
     diffThreshold = cl.diffThreshold;
@@ -401,6 +493,8 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     crop = cl.crop;
     frameWidth = cl.frameWidth;
     frameHeight = cl.frameHeight;
+    breathingRate = 1.0;
+    timeToAlarm = cl.timeToAlarm;
     roi = cv::Rect(cv::Point(0, 0), cv::Point(cl.frameWidth, cl.frameHeight));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
