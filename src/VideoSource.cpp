@@ -15,7 +15,6 @@
 #include "VideoSource.hpp"
 
 #define NUM_BUFFERS 2
-#define NUM_PLANES 3
 
 static inline int
 check_return(int ret) {
@@ -85,11 +84,10 @@ VideoSource::negotiateFormat() {
     struct v4l2_format format;
     memset (&format, 0, sizeof(struct v4l2_format));
 
-    // request a multi plane format
-    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-    format.fmt.pix_mp.width = itsWidth;
-    format.fmt.pix_mp.height = itsHeight;
-    format.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_YUV420;
+    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    format.fmt.pix.width = itsWidth;
+    format.fmt.pix.height = itsHeight;
+    format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 
     // this colorspace is the sRGB with default whitepoint
     // and full range quantization
@@ -97,22 +95,19 @@ VideoSource::negotiateFormat() {
     // transformation, and it's the dumb default colorspace
     // if you don't know anything about colorspaces
     // which is probably right for us
-    format.fmt.pix_mp.colorspace = V4L2_COLORSPACE_JPEG;
+    format.fmt.pix.colorspace = V4L2_COLORSPACE_JPEG;
 
     check_return(ioctl (itsCameraFd, VIDIOC_S_FMT, &format));
 
     // the ioctl can return success but the driver is free
     // not to change the format (in which case it must set
     // format to whatever the current format is)
-    if (format.fmt.pix_mp.pixelformat != V4L2_PIX_FMT_YUV420 ||
-        format.fmt.pix_mp.num_planes != NUM_PLANES)
+    if (format.fmt.pix.pixelformat != V4L2_PIX_FMT_YUYV)
         throw new std::runtime_error("Failed to set the image format: the driver rejected it.");
 
-    itsWidth = format.fmt.pix_mp.width;
-    itsHeight = format.fmt.pix_mp.height;
-
-    // the plane we care about is plane 0, the Y plane
-    itsStride = format.fmt.pix_mp.plane_fmt[0].bytesperline;
+    itsWidth = format.fmt.pix.width;
+    itsHeight = format.fmt.pix.height;
+    itsStride = format.fmt.pix.bytesperline;
 }
 
 static void
@@ -148,7 +143,7 @@ VideoSource::startStreaming() {
 
     // request two single plane buffers
     request.count = NUM_BUFFERS;
-    request.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+    request.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     request.memory = V4L2_MEMORY_MMAP;
 
     // allocate the buffers
@@ -158,22 +153,15 @@ VideoSource::startStreaming() {
         struct v4l2_buffer buffer_info;
         memset (&buffer_info, 0, sizeof(struct v4l2_buffer));
 
-        struct v4l2_plane plane_info[NUM_PLANES];
-        memset (&plane_info, 0, sizeof(plane_info));
-
         buffer_info.type = request.type;
         buffer_info.memory = V4L2_MEMORY_MMAP;
         buffer_info.index = i;
 
-        buffer_info.length = NUM_PLANES;
-        buffer_info.m.planes = plane_info;
-
         // retrieve the buffer offset to pass to mmap, and its size
         check_return(ioctl (itsCameraFd, VIDIOC_QUERYBUF, &buffer_info));
 
-        // ignore all planes but 0 (= Y), no need to mmap Cb/Cr
         // mmap the buffer (by constructing a mmap_buffer struct in the buffers vector)
-        itsBuffers.emplace_back(itsCameraFd, buffer_info.m.planes[0].m.mem_offset, buffer_info.m.planes[0].length);
+        itsBuffers.emplace_back(itsCameraFd, buffer_info.m.offset, buffer_info.length);
 
         // add the empty (mapped) buffer in the queue
         check_return(ioctl (itsCameraFd, VIDIOC_QBUF, &buffer_info));
@@ -188,7 +176,7 @@ VideoSource::VideoSource(int id, const std::string &fileName, int fps, int width
     , itsCameraFd(id >= 0 ? openCamera(id) : -1)
     , itsWidth(width)
     , itsHeight(height)
-    , itsStride(3 * width)
+    , itsStride(2 * width)
     , itsNextBuffer(0)
     , itsCurrentBuffer(-1)
 {
@@ -230,7 +218,7 @@ VideoSource::read(cv::Mat& into) {
     // release the current buffer
     if (itsCurrentBuffer >= 0) {
         memset (&buffer_info, 0, sizeof(struct v4l2_buffer));
-        buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+        buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buffer_info.memory = V4L2_MEMORY_MMAP;
         buffer_info.index = itsCurrentBuffer;
 
@@ -240,7 +228,7 @@ VideoSource::read(cv::Mat& into) {
 
     memset (&buffer_info, 0, sizeof(struct v4l2_buffer));
 
-    buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+    buffer_info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buffer_info.memory = V4L2_MEMORY_MMAP;
     buffer_info.index = itsNextBuffer;
 
@@ -249,12 +237,17 @@ VideoSource::read(cv::Mat& into) {
 
     // make a mat out of the buffer
     mmap_buffer& mmapped = itsBuffers[itsNextBuffer];
-    cv::Mat frame(itsHeight, itsWidth, CV_8UC3, mmapped.get(), itsStride);
+    // The buffer is Y_0 Cb_0 Y_1 Cr_1 Y_2 Cb_2 etc (Cb/Cr are subsampled)
+    // in practice, we ignore all chroma components, so we effectively
+    // have two bytes per pixel
+    cv::Mat frame(itsHeight, itsWidth, CV_8UC2, mmapped.get(), itsStride);
+    cv::Mat channels[2];
+    cv::split(frame, channels);
+    into = channels[0];
 
     itsCurrentBuffer = itsNextBuffer;
     itsNextBuffer = (itsNextBuffer + 1) % itsBuffers.size();
 
-    into = std::move(frame);
     return true;
 }
 
