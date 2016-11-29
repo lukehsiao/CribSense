@@ -13,6 +13,14 @@
 #define MINIMUM_FRAMES 3
 #define SPLIT 3
 #define NSEC_PER_SEC 1000000
+#define FULL_FRAME_FPS 4.5
+#define CROP_FRAME_FPS 15
+
+// Types of frame sizes for reinitializing the Riesz FPS.
+enum frame_size {
+    FULL_FRAME,
+    CROPPED_FRAME
+};
 
 class MotionDetection {
 
@@ -72,7 +80,7 @@ private:
      * correct sizes.
      * @param frame Input frame to reference for sizing.
      */
-    void reinitializeReisz(cv::Mat frame);
+    void reinitializeReisz(cv::Mat frame, frame_size size);
 
     /**
      * Accumulate the bitwise OR in the accumulator each time it is called.

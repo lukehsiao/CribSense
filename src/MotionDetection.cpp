@@ -374,13 +374,23 @@ void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
     newFrame.copyTo(frameBuffer[MINIMUM_FRAMES-1]);
 }
 
-void MotionDetection::reinitializeReisz(cv::Mat frame) {
+void MotionDetection::reinitializeReisz(cv::Mat frame, frame_size size) {
     static cv::Mat in_sections[SPLIT];
     for (int i = 0; i < SPLIT; i++) {
         auto rowRange = cv::Range(frame.rows * i / SPLIT, (frame.rows * (i+1) / SPLIT));
         auto colRange = cv::Range(0, frame.cols);
         in_sections[i] = frame(rowRange, colRange);
         rt[i].initialize(in_sections[i]);
+        switch(size) {
+            case FULL_FRAME:
+                rt[i].fps(FULL_FRAME_FPS);
+                break;
+            case CROPPED_FRAME:
+                rt[i].fps(CROP_FRAME_FPS);
+                break;
+            default:
+                printf("[error] Invalid crop size passed in.\n");
+        }
     }
 }
 
@@ -456,7 +466,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             if (validTimer >= roiUpdateInterval) {
                 if (crop) {
                     currentState = reset_st;
-                    reinitializeReisz(newFrame);
+                    reinitializeReisz(newFrame, FULL_FRAME);
                 }
                 else {  // if crop is false, just hang out.
                     currentState = idle_st;
@@ -476,7 +486,7 @@ void MotionDetection::update(cv::Mat newFrame) {
         case valid_roi_st:
             if (refillTimer >= MINIMUM_FRAMES) {
                 currentState = idle_st;
-                reinitializeReisz(newFrame(roi));
+                reinitializeReisz(newFrame(roi), CROPPED_FRAME);
                 refillTimer = 0;
             }
             break;
@@ -511,6 +521,12 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
 
     for (int i = 0; i < SPLIT; i++) {
         cl.apply(rt[i]);
-        rt[i].fps(cl.fps);
+        if (cl.cameraId >= 0) {
+            rt[i].fps(FULL_FRAME_FPS);
+        }
+        else {
+            rt[i].fps(cl.fps);
+        }
+
     }
 }
