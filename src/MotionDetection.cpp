@@ -364,7 +364,8 @@ void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
     for (int i = 0; i < (MINIMUM_FRAMES - 1); i++) {
         frameBuffer[i] = frameBuffer[i + 1];
     }
-    frameBuffer[MINIMUM_FRAMES-1] = newFrame;
+    frameBuffer[MINIMUM_FRAMES-1] = cv::Mat();
+    newFrame.copyTo(frameBuffer[MINIMUM_FRAMES-1]);
 }
 
 void MotionDetection::reinitializeReisz(cv::Mat frame) {
