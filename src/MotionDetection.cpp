@@ -279,7 +279,15 @@ void MotionDetection::calculateROI() {
     }
 
     if (contours.empty()) {
-        printf("[info] Uhh....didn't see any motion....\n");
+        printf("[info] Hmmm...didn't see any motion....\n");
+        // If the ROI has been cropped before, just use that same one
+        // otherwise, go ahead and just choose a crop for now.
+        if ((roi.width * roi.height) > (frameWidth * frameHeight / 3)) {
+            printf("[info] Choosing an arbitrary crop for now.\n");
+            // Case where it's never been cropped just get a crop at (0,0)
+            // In the future, could center this or something.
+            roi = cv::Rect(0, 0, frameWidth/3, frameHeight/3);
+        }
         return;
     }
     else {
