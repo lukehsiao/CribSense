@@ -28,7 +28,9 @@ struct CommandLine {
     unsigned roiUpdateInterval;      // # frames between roi updates
     unsigned roiWindow;              // # frames to consider when calculating roi
     double amplify;                  // The current amplification.
-    double fps;                      // user-specified fps of input video.
+    double input_fps;                // fps to read from the input
+    double full_fps;                 // fps at which full frames can be processed
+    double crop_fps;                 // fps at which cropped frames can be processed
     double lowCutoff;                // The low frequency of the bandpass.
     double highCutoff;               // The high frequency of the bandpass.
     double threshold;                // The phase threshold as % of pi.

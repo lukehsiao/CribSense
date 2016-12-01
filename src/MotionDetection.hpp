@@ -13,8 +13,6 @@
 #define MINIMUM_FRAMES 3
 #define SPLIT 3
 #define NSEC_PER_SEC 1000000
-#define FULL_FRAME_FPS 4.5
-#define CROP_FRAME_FPS 15
 
 // Types of frame sizes for reinitializing the Riesz FPS.
 enum frame_size {
@@ -32,6 +30,10 @@ private:
     cv::Mat evaluation;
     cv::Mat accumulator;
     cv::Rect roi;
+    double full_fps;
+    double crop_fps;
+    double input_fps;
+    bool usingCamera;
     int diffThreshold;
     bool showDiff;
     bool showMagnification;

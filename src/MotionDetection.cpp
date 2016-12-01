@@ -389,15 +389,23 @@ void MotionDetection::reinitializeReisz(cv::Mat frame, frame_size size) {
         auto colRange = cv::Range(0, frame.cols);
         in_sections[i] = frame(rowRange, colRange);
         rt[i].initialize(in_sections[i]);
-        switch(size) {
-            case FULL_FRAME:
-                rt[i].fps(FULL_FRAME_FPS);
-                break;
-            case CROPPED_FRAME:
-                rt[i].fps(CROP_FRAME_FPS);
-                break;
-            default:
-                printf("[error] Invalid crop size passed in.\n");
+
+        // NOTE: If we're reading from a file, we're not dropping anything, so
+        // just read at the file's FPS (which was initialized already).
+        if (usingCamera) {
+            switch(size) {
+                case FULL_FRAME:
+                    rt[i].fps(full_fps);
+                    break;
+                case CROPPED_FRAME:
+                    rt[i].fps(crop_fps);
+                    break;
+                default:
+                    printf("[error] Invalid crop size passed in.\n");
+            }
+        }
+        else {
+            rt[i].fps(input_fps);
         }
     }
 }
@@ -518,22 +526,25 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     frameWidth = cl.frameWidth;
     frameHeight = cl.frameHeight;
     breathingRate = 1.0;
+    full_fps = cl.full_fps;
+    crop_fps = cl.crop_fps;
+    input_fps = cl.input_fps;
     timeToAlarm = cl.timeToAlarm;
     roi = cv::Rect(cv::Point(0, 0), cv::Point(cl.frameWidth, cl.frameHeight));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
     accumulator = cv::Mat::zeros(cl.frameHeight, cl.frameWidth, CV_8UC1);
-
+    usingCamera = (cl.cameraId >= 0 ? true : false);
     ca_context_create(&snd_context);
     ca_context_open(snd_context);
 
     for (int i = 0; i < SPLIT; i++) {
         cl.apply(rt[i]);
-        if (cl.cameraId >= 0) {
-            rt[i].fps(FULL_FRAME_FPS);
+        if (usingCamera) {
+            rt[i].fps(full_fps);
         }
         else {
-            rt[i].fps(cl.fps);
+            rt[i].fps(cl.input_fps);
         }
 
     }

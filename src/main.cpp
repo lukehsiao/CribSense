@@ -30,7 +30,7 @@ static int batch(const CommandLine &cl)
     MotionDetection detector(cl);
 
     uint64_t frame_time = 0;
-    VideoSource source(cl.cameraId, cl.inFile, cl.fps, cl.frameWidth, cl.frameHeight);
+    VideoSource source(cl.cameraId, cl.inFile, cl.input_fps, cl.frameWidth, cl.frameHeight);
     print_time(frame_time, 'A');
     for (;;) {
         // for each frame
