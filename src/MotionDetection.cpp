@@ -534,7 +534,7 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
     accumulator = cv::Mat::zeros(cl.frameHeight, cl.frameWidth, CV_8UC1);
-    usingCamera = (cl.cameraId >= 0 ? true : false);
+    usingCamera = (cl.cameraId >= 0);
     ca_context_create(&snd_context);
     ca_context_open(snd_context);
 
