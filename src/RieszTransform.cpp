@@ -466,16 +466,14 @@ RieszTransform::RieszTransform(const RieszTransform& other) : state(new RieszTra
 
 RieszTransform::~RieszTransform() {}
 
-void
-RieszTransform::initialize(const cv::Mat& frame) {
+void RieszTransform::initialize(const cv::Mat& frame) {
     static const double scaleFactor = 1.0 / 255.0;
     frame.convertTo(itsFrame, CV_32F, scaleFactor);
     state->itsCurrent.initialize(itsFrame);
     state->itsPrior.initialize(itsFrame);
 }
 
-cv::Mat
-RieszTransform::transform(const cv::Mat &frame) {
+cv::Mat RieszTransform::transform(const cv::Mat &frame) {
     static const double PI_PERCENT = M_PI / 100.0;
     static const double scaleFactor = 1.0 / 255.0;
 

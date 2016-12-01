@@ -82,7 +82,6 @@ CommandLine::CommandLine(int ac, char *av[])
     , motionDuration(1)
     , pixelThreshold(10)
     , amplify(30.0)
-    , fps(-1.0)
     , lowCutoff(0.5)
     , highCutoff(1.0)
     , threshold(25.0)
@@ -154,8 +153,14 @@ CommandLine::CommandLine(int ac, char *av[])
         amplify = reader.GetReal("magnification", "amplify", 20);
         ok = ok && amplify && amplify >= 0 && amplify <= 100;
 
-        fps = reader.GetInteger("io", "fps", 10);
-        ok = ok && fps && fps >= 0;
+        input_fps = reader.GetReal("io", "input_fps", 60);
+        ok = ok && input_fps && input_fps >= 0;
+
+        full_fps = reader.GetReal("io", "full_fps", 4.5);
+        ok = ok && full_fps && full_fps >= 0;
+
+        crop_fps = reader.GetReal("io", "crop_fps", 15);
+        ok = ok && crop_fps && crop_fps >= 0;
 
         lowCutoff = reader.GetReal("magnification", "low-cutoff", 0.7);
         ok = ok && lowCutoff && lowCutoff >= 0;

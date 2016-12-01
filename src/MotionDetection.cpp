@@ -279,7 +279,15 @@ void MotionDetection::calculateROI() {
     }
 
     if (contours.empty()) {
-        printf("[info] Uhh....didn't see any motion....\n");
+        printf("[info] Hmmm...didn't see any motion....\n");
+        // If the ROI has been cropped before, just use that same one
+        // otherwise, go ahead and just choose a crop for now.
+        if ((roi.width * roi.height) > (frameWidth * frameHeight / 3)) {
+            printf("[info] Choosing an arbitrary crop for now.\n");
+            // Case where it's never been cropped just get a crop at (0,0)
+            // In the future, could center this or something.
+            roi = cv::Rect(0, 0, frameWidth/3, frameHeight/3);
+        }
         return;
     }
     else {
@@ -374,13 +382,31 @@ void MotionDetection::pushFrameBuffer(cv::Mat newFrame) {
     newFrame.copyTo(frameBuffer[MINIMUM_FRAMES-1]);
 }
 
-void MotionDetection::reinitializeReisz(cv::Mat frame) {
+void MotionDetection::reinitializeReisz(cv::Mat frame, frame_size size) {
     static cv::Mat in_sections[SPLIT];
     for (int i = 0; i < SPLIT; i++) {
         auto rowRange = cv::Range(frame.rows * i / SPLIT, (frame.rows * (i+1) / SPLIT));
         auto colRange = cv::Range(0, frame.cols);
         in_sections[i] = frame(rowRange, colRange);
         rt[i].initialize(in_sections[i]);
+
+        // NOTE: If we're reading from a file, we're not dropping anything, so
+        // just read at the file's FPS (which was initialized already).
+        if (usingCamera) {
+            switch(size) {
+                case FULL_FRAME:
+                    rt[i].fps(full_fps);
+                    break;
+                case CROPPED_FRAME:
+                    rt[i].fps(crop_fps);
+                    break;
+                default:
+                    printf("[error] Invalid crop size passed in.\n");
+            }
+        }
+        else {
+            rt[i].fps(input_fps);
+        }
     }
 }
 
@@ -456,7 +482,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             if (validTimer >= roiUpdateInterval) {
                 if (crop) {
                     currentState = reset_st;
-                    reinitializeReisz(newFrame);
+                    reinitializeReisz(newFrame, FULL_FRAME);
                 }
                 else {  // if crop is false, just hang out.
                     currentState = idle_st;
@@ -476,7 +502,7 @@ void MotionDetection::update(cv::Mat newFrame) {
         case valid_roi_st:
             if (refillTimer >= MINIMUM_FRAMES) {
                 currentState = idle_st;
-                reinitializeReisz(newFrame(roi));
+                reinitializeReisz(newFrame(roi), CROPPED_FRAME);
                 refillTimer = 0;
             }
             break;
@@ -500,17 +526,26 @@ MotionDetection::MotionDetection(const CommandLine &cl) {
     frameWidth = cl.frameWidth;
     frameHeight = cl.frameHeight;
     breathingRate = 1.0;
+    full_fps = cl.full_fps;
+    crop_fps = cl.crop_fps;
+    input_fps = cl.input_fps;
     timeToAlarm = cl.timeToAlarm;
     roi = cv::Rect(cv::Point(0, 0), cv::Point(cl.frameWidth, cl.frameHeight));
     erodeKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.erodeDimension, cl.erodeDimension));
     dilateKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(cl.dilateDimension, cl.dilateDimension));
     accumulator = cv::Mat::zeros(cl.frameHeight, cl.frameWidth, CV_8UC1);
-
+    usingCamera = (cl.cameraId >= 0);
     ca_context_create(&snd_context);
     ca_context_open(snd_context);
 
     for (int i = 0; i < SPLIT; i++) {
         cl.apply(rt[i]);
-        rt[i].fps(cl.fps);
+        if (usingCamera) {
+            rt[i].fps(full_fps);
+        }
+        else {
+            rt[i].fps(cl.input_fps);
+        }
+
     }
 }
