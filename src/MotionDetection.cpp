@@ -14,12 +14,15 @@ enum motionDetection_st {
 /**
  * Launch rt.transform for the given RieszTransform and the given frame.
  */
-cv::Mat do_transforms(RieszTransform* rt, cv::Mat frame)
+static cv::Mat
+do_transforms(RieszTransform* rt, cv::Mat frame)
 {
     return rt->transform(frame);
 }
 
-void debugStatePrint() {
+static void debugStatePrint(void) __attribute__((unused));
+
+static void debugStatePrint(void) {
     static motionDetection_st previousState;
     static bool firstPass = true;
     if (previousState != currentState || firstPass) {

@@ -97,24 +97,8 @@ static void normalize(std::vector< std::complex<double> > &b,
     leading_coeff = a.front();
     if (leading_coeff == 0.0)
         throw std::range_error("Polynomial is 0");
-    for (unsigned int k = 0; k < a.size(); ++k) a[k] /= leading_coeff;
-    for (unsigned int k = 0; k < b.size(); ++k) b[k] /= leading_coeff;
-}
-
-
-// Return the binomial coefficient: n choose k.
-//
-static unsigned choose(unsigned n, unsigned k)
-{
-    if (k > n) return 0;
-    if (k * 2 > n) k = n - k;
-    if (k == 0) return 1;
-    unsigned result = n;
-    for (unsigned i = 2; i <= k; ++i) {
-        result *= (n - i + 1);
-        result /= i;
-    }
-    return result;
+    for (k = 0; k < a.size(); ++k) a[k] /= leading_coeff;
+    for (k = 0; k < b.size(); ++k) b[k] /= leading_coeff;
 }
 
 static inline int minus_one_to_the_k(unsigned k) {
