@@ -233,14 +233,14 @@ public:
             float realR = realRData[i];
             float imagR = imagRData[i];
 
-            float amplitude = sqrtf(realR * realR + imagR * imagR + lp * lp);
-            amplitudeData[i] = amplitude;
+            float ampl = sqrtf(realR * realR + imagR * imagR + lp * lp);
+            amplitudeData[i] = ampl;
 
             float cosChange = cosRealPassData[i] - cosImagPassData[i];
             float sinChange = sinRealPassData[i] - sinImagPassData[i];
 
-            float cosNormalized = cosChange * amplitude;
-            float sinNormalized = sinChange * amplitude;
+            float cosNormalized = cosChange * ampl;
+            float sinNormalized = sinChange * ampl;
 
             normalizedData[2 * i] = cosNormalized;
             normalizedData[2 * i + 1] = sinNormalized;
@@ -249,9 +249,9 @@ public:
         cv::sepFilter2D(amplitude, amplitude, -1, kernel, kernel);
 
         for (int i = 0; i < N; i++) {
-            float amplitude = amplitudeData[i];
-            float cosNormalized = safe_divide(normalizedData[2 * i], amplitude);
-            float sinNormalized = safe_divide(normalizedData[2 * i + 1], amplitude);
+            float ampl = amplitudeData[i];
+            float cosNormalized = safe_divide(normalizedData[2 * i], ampl);
+            float sinNormalized = safe_divide(normalizedData[2 * i + 1], ampl);
 
             float magV = cosNormalized * cosNormalized + sinNormalized * sinNormalized;
             magV = sqrtf(magV);
