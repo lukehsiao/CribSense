@@ -33,7 +33,7 @@ to be bound by all terms of this software release agreement.
 
 ### `inih` Library
 
-The "inih" library is distributed under the New BSD license:
+The ["inih" library](https://github.com/benhoyt/inih) is distributed under the New BSD license:
 
 Copyright (c) 2009, Ben Hoyt
 All rights reserved.
