@@ -2,5 +2,6 @@ site_name: CribSense Documentation
 repo_url: https://github.com/lukehsiao/CribSense
 pages:
 - Home: 'index.md'
-- Step-by-step Setup Instructions: 'setup/setup.md'
+- Software Setup Instructions: 'setup/sw-setup.md'
+- Hardware Setup Instructions: 'setup/hw-setup.md'
 theme: readthedocs
