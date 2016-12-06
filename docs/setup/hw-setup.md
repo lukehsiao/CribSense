@@ -4,7 +4,7 @@
 
 **Figure TODO: Hardware Block Diagram**
 
-CribSense is relatively simple as far as hardware goes, and is largely made up of commercially available items. As seen in Figure TODO, there are only 5 main hardware components, and only 2 of the 4 them are custom made. This page will walk through how to construct the IR LED circuit, and the chassis we used.
+CribSense is relatively simple as far as hardware goes, and is largely made up of commercially available items. As seen in Figure TODO, there are only 5 main hardware components, and only 2 of them are custom made. This page will walk through how to construct the IR LED circuit, and the chassis we used.
 
 ## What you'll need
 
@@ -19,6 +19,7 @@ CribSense is relatively simple as far as hardware goes, and is largely made up o
 -   Wires
 -   Soldering iron
 -   3D printer for chassis
+-   Speakers with 3.5mm input
 
 ## Prerequisites
 
@@ -34,14 +35,14 @@ TODO: Build process along with pictures.
 
 ### IR LED Circuit
 
-In order to provide adequate lighting at night, we use an IR LED, which is not visible to the human eye, but brightly illuminating for our NoIR camera. Because the Pi is plugged in, and because the LED is relatively low power, we can just leave it on for simplicity.
+In order to provide adequate lighting at night, we use an IR LED, which is not visible to the human eye, but brightly illuminating for our NoIR camera. Because the Pi is plugged in, and because the LED is relatively low power, we just leave it on for simplicity.
 
 To power the LED from the GPIO header pins on the Pi, we construct the circuit in Figure TODO.
 
 ![led](../img/led-schematic.png)
 **Figure TODO: LED Schematic**
 
-In the earlier version of Pi, the maximum current output is of these pins was [50mA](http://pinout.xyz/pinout/pin1_3v3_power). After Raspberry Pi B+ it increased to 500mA. However, to be safe and being backward compatible, we choose to use the 5V power pins, which can supply up to [1.5A](http://pinout.xyz/pinout/pin2_5v_power). The forward voltage of the IR LED is about 1.7~1.9V according to our measurements. Although the IR LED can draw 500mA without damaging itself, we decided to reduce current to around 200mA to reduce heat and overall power consumption. Experimental result also shows that the IR LED is bright enough with this configuration. To bridge the gap between 5V and 1.9V, we decided to use 3x 1N4001 diodes and a 1 Ohm resistor in series with the IR LED. The voltage loss on the wire is about 0.2V, over the diodes voltage drops about 0.9V x3 and over the resistor is also 0.2V. So the voltage over the IR LED is 5V- 0.2V - 0.9V x3 - 0.2V = 1.9V. The heat dispassion over each LED is 0.18W, and is 0.2W over the resistor, all well within the maximum ratings.
+In earlier versions of the Pi, the maximum current output of these pins was [50mA](http://pinout.xyz/pinout/pin1_3v3_power). The Raspberry Pi B+ increased this to 500mA. However, for simplicity and backwards compatibility, we just use the 5V power pins, which can supply up to [1.5A](http://pinout.xyz/pinout/pin2_5v_power). The forward voltage of the IR LED is about 1.7~1.9V according to our measurements. Although the IR LED can draw 500mA without damaging itself, we decided to reduce the current to around 200mA to reduce heat and overall power consumption. Experimental result also show that the IR LED is bright enough with this input. To bridge the gap between 5V and 1.9V, we decided to use three 1N4001 diodes and a 1 Ohm resistor in series with the IR LED. The voltage loss on the wire is about 0.2V, over the diodes it's 0.9V (for each one), and over the resistor it's 0.2V. So the voltage over the IR LED is `5V - 0.2V - (3 * 0.9V) - 0.2V = 1.9V`. The heat dissipation over each LED is 0.18W, and is 0.2W over the resistor, all well within the maximum ratings.
 
 The completed circuit is pictured below:
 
