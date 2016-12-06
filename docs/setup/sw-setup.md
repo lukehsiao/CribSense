@@ -34,7 +34,12 @@ sudo systemctl enable cribsense
 ```
 
 ## Software Configuration
-CribSense behavior is controllable through a simple INI configuration file.
+
+CribSense behavior is controllable through a simple INI configuration file. After running `make install`, the configuration file is located at:
+
+```sh
+/etc/cribsense/config.ini
+```
 
 TODO: Detail what each of the configuration parameters does.
 
