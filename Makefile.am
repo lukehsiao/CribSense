@@ -35,7 +35,20 @@ cribsense_LDFLAGS = $(AM_LDFLAGS) $(DEPS_LIBS)
 
 dist_doc_DATA = \
     docs/index.md \
-    docs/setup/setup.md
+    docs/setup/hw-setup.md \
+    docs/setup/sw-setup.md
+
+configdir = $(sysconfdir)/cribsense
+
+dist_config_DATA = config.ini
+
+systemdsystemunitdir = $(sysconfdir)/systemd/system
+systemdsystemunit_DATA = cribsense.service
+
+cribsense.service: cribsense.service.in
+	sed -e 's|[@]bindir@|$(bindir)|g' -e 's|[@]sysconfdir@|$(sysconfdir)|g' $< > $@
+
+CLEANFILES = cribsense.service
 
 GITIGNOREFILES = aclocal.m4 build-aux config.h.in
 

@@ -1,0 +1,13 @@
+[Unit]
+Description=Cribsense Baby Monitoring Service
+
+[Service]
+Type=simple
+ExecStart=@bindir@/cribsense --config @sysconfdir@/cribsense/config.ini
+CapabilityBoundingSet=
+ProtectSystem=true
+ProtectHome=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
