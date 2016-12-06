@@ -87,6 +87,7 @@ CommandLine::CommandLine(int ac, char *av[])
     , threshold(25.0)
     , showDiff(false)
     , showMagnification(false)
+    , showTimes(false)
     , about(false)
     , help(false)
     , ok(true)           // Check this before use.
@@ -195,6 +196,8 @@ CommandLine::CommandLine(int ac, char *av[])
         showDiff = reader.GetBoolean("motion", "show_diff", false);
 
         showMagnification = reader.GetBoolean("magnification", "show_magnification", false);
+
+        showTimes = reader.GetBoolean("debug", "print_times", false);
 
         crop = reader.GetBoolean("cropping", "crop", false);
 

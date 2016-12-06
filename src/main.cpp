@@ -31,13 +31,16 @@ static int batch(const CommandLine &cl)
 
     uint64_t frame_time = 0;
     VideoSource source(cl.cameraId, cl.inFile, cl.input_fps, cl.frameWidth, cl.frameHeight);
-    print_time(frame_time, 'A');
+    if (cl.showTimes)
+        print_time(frame_time, 'A');
     for (;;) {
         // for each frame
         cv::Mat frame; const bool more = source.read(frame);
-        print_time(frame_time, 'A');
+        if (cl.showTimes)
+            print_time(frame_time, 'A');
         if (frame.empty()) {
-            print_time(frame_time, 'B');
+            if (cl.showTimes)
+                print_time(frame_time, 'B');
             if (!more) {
                 //time(&end);
                 //double diff_t = difftime(end, start);
@@ -46,7 +49,8 @@ static int batch(const CommandLine &cl)
             }
         } else {
             detector.update(frame);
-            print_time(frame_time, 'B');
+            if (cl.showTimes)
+                print_time(frame_time, 'B');
         }
     }
 }

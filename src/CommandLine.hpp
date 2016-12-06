@@ -36,6 +36,7 @@ struct CommandLine {
     double threshold;                // The phase threshold as % of pi.
     bool showDiff;                   // optionally show the diff between frames
     bool showMagnification;          // optionally show the magnification output
+    bool showTimes;                  // optionally print the times between frames
     bool about;                      // True iff --about.
     bool help;                       // True iff --help.
     bool ok;                         // True if (ac, av) parse is valid.
