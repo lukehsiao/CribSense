@@ -8,9 +8,9 @@ AM_CXXFLAGS = $(ARCH_CXXFLAGS) $(WARN_CXXFLAGS) -O3 \
 
 AM_LDFLAGS = -lrt
 
-bin_PROGRAMS = Magnifier
+bin_PROGRAMS = cribsense
 
-Magnifier_SOURCES = \
+cribsense_SOURCES = \
     src/VideoSource.hpp \
     src/CommandLine.hpp \
     src/RieszTransform.hpp \
@@ -30,8 +30,8 @@ Magnifier_SOURCES = \
     src/VideoSource.cpp \
     $(NULL)
 
-Magnifier_CXXFLAGS = $(AM_CXXFLAGS) $(DEPS_CFLAGS)
-Magnifier_LDFLAGS = $(AM_LDFLAGS) $(DEPS_LIBS)
+cribsense_CXXFLAGS = $(AM_CXXFLAGS) $(DEPS_CFLAGS)
+cribsense_LDFLAGS = $(AM_LDFLAGS) $(DEPS_LIBS)
 
 dist_doc_DATA = \
     docs/index.md \
