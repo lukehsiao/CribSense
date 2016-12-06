@@ -14,7 +14,7 @@ CribSense is relatively simple as far as hardware goes, and is largely made up o
 -   [1W IR LED](https://www.amazon.com/DIYmall%C2%AE-Infrared-Adjustable-Resistor-Raspberry/dp/B00NUOO1HQ)
 -   [MicroSD Card](https://www.amazon.com/Samsung-Class-Adapter-MB-MP32DA-AM/dp/B00IVPU7KE) (we went with a class 10 16GB card, the faster the card the better)
 -   [Flex Cable for Raspberry Pi Camera (18")](https://www.adafruit.com/products/1730)
--   [[3x] 1N4001 diodes](<https://www.adafruit.com/product/755>)
+-   [\[3x\] 1N4001 diodes](https://www.adafruit.com/product/755)
 -   [1 ohm, 1W resistor](http://www.parts-express.com/10-ohm-1w-flameproof-resistor-10-pcs--003-1)
 -   Wires
 -   Soldering iron
@@ -41,5 +41,8 @@ To power the LED from the GPIO header pins on the Pi, we construct the circuit i
 ![led](../img/led-schematic.png)
 **Figure TODO: LED Schematic**
 
-TODO: Pan fill out description of why the diodes are there. Link to the GPIO documentation so people know why those are the pins used. Talk about the LED's specs etc.
+In the earlier version of Pi, the maximum current output is of these pins was [50mA](http://pinout.xyz/pinout/pin1_3v3_power). After Raspberry Pi B+ it increased to 500mA. However, to be safe and being backward compatible, we choose to use the 5V power pins, which can supply up to [1.5A](http://pinout.xyz/pinout/pin2_5v_power). The forward voltage of the IR LED is about 1.7~1.9V according to our measurements. Although the IR LED can draw 500mA without damaging itself, we decided to reduce current to around 200mA to reduce heat and overall power consumption. Experimental result also shows that the IR LED is bright enough with this configuration. To bridge the gap between 5V and 1.9V, we decided to use 3x 1N4001 diodes and a 1 Ohm resistor in series with the IR LED. The voltage loss on the wire is about 0.2V, over the diodes voltage drops about 0.9V x3 and over the resistor is also 0.2V. So the voltage over the IR LED is 5V- 0.2V - 0.9V x3 - 0.2V = 1.9V. The heat dispassion over each LED is 0.18W, and is 0.2W over the resistor, all well within the maximum ratings.
+
+The completed circuit is pictured below:
+
 TODO: Add pictures of the actual circuit.
