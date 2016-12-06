@@ -23,9 +23,9 @@ check_return(int ret) {
     return ret;
 }
 
-mmap_buffer::mmap_buffer(int fd, off_t offset, size_t size) : address(nullptr), bytes(size)
+mmap_buffer::mmap_buffer(int fd, off_t offset, size_t byte_size) : address(nullptr), bytes(byte_size)
 {
-    address = mmap (nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
+    address = mmap (nullptr, byte_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
     if (address == nullptr)
         throw std::system_error(errno, std::system_category());
 }
@@ -171,7 +171,7 @@ VideoSource::startStreaming() {
     check_return(ioctl (itsCameraFd, VIDIOC_STREAMON, &type));
 }
 
-VideoSource::VideoSource(int id, const std::string &fileName, int fps, int width, int height)
+VideoSource::VideoSource(int id, const std::string &fileName_value, int fps_value, int width, int height)
     : itsFileCapture()
     , itsCameraFd(id >= 0 ? openCamera(id) : -1)
     , itsWidth(width)
@@ -184,10 +184,10 @@ VideoSource::VideoSource(int id, const std::string &fileName, int fps, int width
         checkCapabilities(itsCameraFd);
         switchToInput(itsCameraFd);
         negotiateFormat();
-        setCameraFps(itsCameraFd, fps);
+        setCameraFps(itsCameraFd, fps_value);
         startStreaming();
     } else {
-        itsFileCapture.open(fileName);
+        itsFileCapture.open(fileName_value);
         if (!itsFileCapture.isOpened())
             throw std::runtime_error("Failed to open file for reading.");
     }

@@ -447,8 +447,8 @@ struct RieszTransformState {
     }
 };
 
-void RieszTransform::fps(double fps) {
-    state->itsBand.itsFps = fps;
+void RieszTransform::fps(double value) {
+    state->itsBand.itsFps = value;
     state->itsBand.computeFilter();
 }
 void RieszTransform::lowCutoff(double frequency) {
