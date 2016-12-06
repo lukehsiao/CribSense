@@ -6,7 +6,7 @@ Type=simple
 ExecStart=@bindir@/cribsense --config @sysconfdir@/cribsense/config.ini
 CapabilityBoundingSet=
 ProtectSystem=true
-ProtectHome=true
+ProtectHome=false
 NoNewPrivileges=true
 
 [Install]
