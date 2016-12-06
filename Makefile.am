@@ -1,6 +1,6 @@
 NULL =
 
-AM_CXXFLAGS = $(ARCH_CXXFLAGS) $(WARN_CXXFLAGS) -O3 \
+AM_CXXFLAGS = $(ARCH_CXXFLAGS) $(WARN_CXXFLAGS) -Wno-error=inline -Wno-inline -O3 \
 	-funsafe-math-optimizations \
 	-fno-trapping-math \
 	-fno-signaling-nans \
