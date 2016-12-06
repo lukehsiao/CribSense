@@ -1,8 +1,10 @@
 # Hardare Setup Guide
 
+![hw-blocks](../img/hw-blocks.png)
+
 **Figure TODO: Hardware Block Diagram**
 
-CribSense is relatively simple as far as hardware goes, and is largely made up of commercially available items. As seen in Figure TODO, there are only 4 main hardware components, and only 2 of the 4 them are custom made. This page will walk through how to construct the IR LED circuit, and the chassis we used.
+CribSense is relatively simple as far as hardware goes, and is largely made up of commercially available items. As seen in Figure TODO, there are only 5 main hardware components, and only 2 of the 4 them are custom made. This page will walk through how to construct the IR LED circuit, and the chassis we used.
 
 ## What you'll need
 
