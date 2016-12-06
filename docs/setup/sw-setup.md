@@ -12,7 +12,7 @@ sudo apt-get install git build-essential autoconf libopencv-dev libcanberra-dev
 
 ## Build
 
-To build the software, navigate to the root of the directory and run
+To build the software, navigate to the root of the repository directory and run
 
 ```sh
 ./autogen.sh --prefix=/usr --sysconfdir=/etc --disable-debug
@@ -32,6 +32,11 @@ To start the program automatically at every boot:
 ```sh
 sudo systemctl enable cribsense
 ```
+
+## Software Configuration
+CribSense behavior is controllable through a simple INI configuration file.
+
+TODO: Detail what each of the configuration parameters does.
 
 ## Software Architecture Details
 
