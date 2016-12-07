@@ -57,6 +57,8 @@ sudo nano /etc/cribsense/config.ini
 
 TODO: Detail what each of the configuration parameters does.
 
+TODO: Link to video describing the calibration process.
+
 ## Software Architecture Details
 
 The software for processing a video stream is implemented as a state machine that cycles as shown below. There are currently six states that manage all of our processing steps. Our state machine logic is called each time a new frame is read from the camera.
