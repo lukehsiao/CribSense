@@ -161,7 +161,8 @@
 <strong>Figure TODO: LED Schematic</strong></p>
 <p>In earlier versions of the Pi, the maximum current output of these pins was <a href="http://pinout.xyz/pinout/pin1_3v3_power">50mA</a>. The Raspberry Pi B+ increased this to 500mA. However, for simplicity and backwards compatibility, we just use the 5V power pins, which can supply up to <a href="http://pinout.xyz/pinout/pin2_5v_power">1.5A</a>. The forward voltage of the IR LED is about 1.7~1.9V according to our measurements. Although the IR LED can draw 500mA without damaging itself, we decided to reduce the current to around 200mA to reduce heat and overall power consumption. Experimental result also show that the IR LED is bright enough with this input. To bridge the gap between 5V and 1.9V, we decided to use three 1N4001 diodes and a 1 Ohm resistor in series with the IR LED. The voltage loss on the wire is about 0.2V, over the diodes it's 0.9V (for each one), and over the resistor it's 0.2V. So the voltage over the IR LED is <code>5V - 0.2V - (3 * 0.9V) - 0.2V = 1.9V</code>. The heat dissipation over each LED is 0.18W, and is 0.2W over the resistor, all well within the maximum ratings.</p>
 <p>The completed circuit is pictured below:</p>
-<p>TODO: Add pictures of the actual circuit.</p>
+<p><img alt="led-zoom" src="../../img/ir-led-zoom.jpg" />
+<img alt="led-full" src="../../img/ir-led-full.jpg" /></p>
               
             </div>
           </div>
