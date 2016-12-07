@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Hardware Setup Instructions - CribSense Documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Hardware Setup Instructions";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+  <script src="../../js/theme.js"></script> 
+
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> CribSense Documentation</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../sw-setup/">Software Setup Instructions</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Hardware Setup Instructions</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#hardare-setup-guide">Hardare Setup Guide</a></li>
+                
+                    <li><a class="toctree-l4" href="#what-youll-need">What you'll need</a></li>
+                
+                    <li><a class="toctree-l4" href="#prerequisites">Prerequisites</a></li>
+                
+                    <li><a class="toctree-l4" href="#build-instructions">Build Instructions</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">CribSense Documentation</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Hardware Setup Instructions</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        
+          <a href="https://github.com/lukehsiao/CribSense" class="icon icon-github"> Edit on GitHub</a>
+        
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="hardare-setup-guide">Hardare Setup Guide</h1>
+<p><img alt="hw-blocks" src="../../img/hw-blocks.png" /></p>
+<p><strong>Figure TODO: Hardware Block Diagram</strong></p>
+<p>CribSense is relatively simple as far as hardware goes, and is largely made up of commercially available items. As seen in Figure TODO, there are only 5 main hardware components, and only 2 of them are custom made. This page will walk through how to construct the IR LED circuit, and the chassis we used.</p>
+<h2 id="what-youll-need">What you'll need</h2>
+<ul>
+<li><a href="https://www.amazon.com/Raspberry-Pi-RASP-PI-3-Model-Motherboard/dp/B01CD5VC92/">Raspberry Pi 3 Model B</a></li>
+<li><a href="https://www.amazon.com/gp/product/B00MARDJZ4/">5V 2.5A Micro USB Power Supply</a></li>
+<li><a href="https://www.amazon.com/Raspberry-Pi-NoIR-Camera-Module/dp/B01ER2SMHY">Raspberry Pi NoIR Camera Module V2</a></li>
+<li><a href="https://www.amazon.com/DIYmall%C2%AE-Infrared-Adjustable-Resistor-Raspberry/dp/B00NUOO1HQ">1W IR LED</a></li>
+<li><a href="https://www.amazon.com/Samsung-Class-Adapter-MB-MP32DA-AM/dp/B00IVPU7KE">MicroSD Card</a> (we went with a class 10 16GB card, the faster the card the better)</li>
+<li><a href="https://www.adafruit.com/products/1648">Flex Cable for Raspberry Pi Camera (12")</a></li>
+<li><a href="https://www.adafruit.com/product/755">[3x] 1N4001 diodes</a></li>
+<li><a href="http://www.parts-express.com/10-ohm-1w-flameproof-resistor-10-pcs--003-1">1 ohm, 1W resistor</a></li>
+<li>[2x] 12" Wires with pin headers</li>
+<li>Soldering iron</li>
+<li>3D printer for chassis</li>
+<li>Speakers with 3.5mm input</li>
+<li>HDMI monitor</li>
+<li>Keyboard</li>
+<li>Mouse</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Before you start our step-by-step guide, you should have already installed the latest version of <a href="https://www.raspberrypi.org/downloads/raspbian/">Raspbian</a> on your SD card and ensured that your Pi is functional and booting. You'll also need to <a href="https://www.raspberrypi.org/documentation/configuration/camera.md">enable the camera module</a> before you'll be able to interface with the camera.</p>
+<h2 id="build-instructions">Build Instructions</h2>
+<h3 id="3d-printed-chassis">3D Printed Chassis</h3>
+<p>TODO: William to fill in instructions about how to use the source files to print out the chassis (or links to good tutorials)</p>
+<p>TODO: Build process along with pictures.</p>
+<h3 id="ir-led-circuit">IR LED Circuit</h3>
+<p>In order to provide adequate lighting at night, we use an IR LED, which is not visible to the human eye, but brightly illuminating for our NoIR camera. Because the Pi is plugged in, and because the LED is relatively low power, we just leave it on for simplicity.</p>
+<p>To power the LED from the GPIO header pins on the Pi, we construct the circuit in Figure TODO.</p>
+<p><img alt="led" src="../../img/led-schematic.png" />
+<strong>Figure TODO: LED Schematic</strong></p>
+<p>In earlier versions of the Pi, the maximum current output of these pins was <a href="http://pinout.xyz/pinout/pin1_3v3_power">50mA</a>. The Raspberry Pi B+ increased this to 500mA. However, for simplicity and backwards compatibility, we just use the 5V power pins, which can supply up to <a href="http://pinout.xyz/pinout/pin2_5v_power">1.5A</a>. The forward voltage of the IR LED is about 1.7~1.9V according to our measurements. Although the IR LED can draw 500mA without damaging itself, we decided to reduce the current to around 200mA to reduce heat and overall power consumption. Experimental result also show that the IR LED is bright enough with this input. To bridge the gap between 5V and 1.9V, we decided to use three 1N4001 diodes and a 1 Ohm resistor in series with the IR LED. The voltage loss on the wire is about 0.2V, over the diodes it's 0.9V (for each one), and over the resistor it's 0.2V. So the voltage over the IR LED is <code>5V - 0.2V - (3 * 0.9V) - 0.2V = 1.9V</code>. The heat dissipation over each LED is 0.18W, and is 0.2W over the resistor, all well within the maximum ratings.</p>
+<p>The completed circuit is pictured below:</p>
+<p>TODO: Add pictures of the actual circuit.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../sw-setup/" class="btn btn-neutral" title="Software Setup Instructions"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../sw-setup/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+
+</body>
+</html>
