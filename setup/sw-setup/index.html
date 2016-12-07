@@ -87,6 +87,13 @@
     </li>
 <li>
           
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../config/">Software Configuration Parameters</a>
+        
+    </li>
+<li>
+          
         </ul>
       </div>
       &nbsp;
@@ -160,8 +167,7 @@ sudo systemctl daemon-reload
 <pre><code class="sh">sudo nano /etc/cribsense/config.ini
 </code></pre>
 
-<p>TODO: Detail what each of the configuration parameters does.</p>
-<p>TODO: Link to video describing the calibration process.</p>
+<p>View the configuration details on the <a href="../config/">Configuration Page</a></p>
 <h2 id="software-architecture-details">Software Architecture Details</h2>
 <p>The software for processing a video stream is implemented as a state machine that cycles as shown below. There are currently six states that manage all of our processing steps. Our state machine logic is called each time a new frame is read from the camera.</p>
 <p><img alt="fsm" src="../../img/sw-fsm.png" /></p>
