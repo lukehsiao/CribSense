@@ -21,10 +21,16 @@ sudo make install
 sudo systemctl daemon-reload
 ```
 
-To start the program:
+To start the program in the background:
 
 ```sh
 sudo systemctl start cribsense
+```
+
+To run it in the foreground:
+
+```sh
+cribsense --config /etc/cribsense/config.ini
 ```
 
 To start the program automatically at every boot:
@@ -33,12 +39,14 @@ To start the program automatically at every boot:
 sudo systemctl enable cribsense
 ```
 
+Note that when `cribsense` is started using `systemctl`, the config parameters are already sent and are stored in `/etc/systemd/system/cribsense.service`
+
 ## Software Configuration
 
 CribSense behavior is controllable through a simple INI configuration file. After running `make install`, the configuration file is located at:
 
 ```sh
-/etc/cribsense/config.ini
+sudo nano /etc/cribsense/config.ini
 ```
 
 TODO: Detail what each of the configuration parameters does.
