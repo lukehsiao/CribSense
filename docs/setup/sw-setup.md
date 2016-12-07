@@ -39,11 +39,17 @@ To start the program automatically at every boot:
 sudo systemctl enable cribsense
 ```
 
+To stop cribsense from automatically running at boot:
+
+```sh
+sudo systemctl disable cribsense
+```
+
 Note that when `cribsense` is started using `systemctl`, the config parameters are already sent and are stored in `/etc/systemd/system/cribsense.service`
 
 ## Software Configuration
 
-CribSense behavior is controllable through a simple INI configuration file. After running `make install`, the configuration file is located at:
+CribSense customizable through a simple INI configuration file. After running `make install`, the configuration file is located at:
 
 ```sh
 sudo nano /etc/cribsense/config.ini

@@ -20,6 +20,9 @@ CribSense is relatively simple as far as hardware goes, and is largely made up o
 -   Soldering iron
 -   3D printer for chassis
 -   Speakers with 3.5mm input
+-   HDMI monitor
+-   Keyboard
+-   Mouse
 
 ## Prerequisites
 
