@@ -49,4 +49,5 @@ In earlier versions of the Pi, the maximum current output of these pins was [50m
 
 The completed circuit is pictured below:
 
-TODO: Add pictures of the actual circuit.
+![led-zoom](../img/ir-led-zoom.jpg)
+![led-full](../img/ir-led-full.jpg)
