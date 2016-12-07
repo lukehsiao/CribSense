@@ -55,9 +55,7 @@ CribSense customizable through a simple INI configuration file. After running `m
 sudo nano /etc/cribsense/config.ini
 ```
 
-TODO: Detail what each of the configuration parameters does.
-
-TODO: Link to video describing the calibration process.
+View the configuration details on the [Configuration Page](./config.md)
 
 ## Software Architecture Details
 

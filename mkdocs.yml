@@ -4,4 +4,5 @@ pages:
 - Home: 'index.md'
 - Software Setup Instructions: 'setup/sw-setup.md'
 - Hardware Setup Instructions: 'setup/hw-setup.md'
+- Software Configuration Parameters: 'setup/config.md'
 theme: readthedocs

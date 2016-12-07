@@ -438,7 +438,7 @@ void MotionDetection::update(cv::Mat newFrame) {
             break;
         case idle_st:
             validTimer++;
-            printf("[info] Pixel Movement: %d\t [info] Breathing Rate: %f\n", countNumChanges(),  getBreathingRate());
+            printf("[info] Pixel Movement: %d\t [info] Motion Estimate: %f Hz\n", countNumChanges(),  getBreathingRate());
             pushFrameBuffer(magnifyVideo(newFrame(roi)));
             DifferentialCollins();
             break;
