@@ -1,7 +1,7 @@
 # CribSense: <small>a contactless, video-based baby monitor</small>
 
-[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://lukehsiao.github.io/CribSense/)
-[![Waffle.io](https://img.shields.io/waffle/label/lukehsiao/CribSense/in%20progress.svg)](http://waffle.io/lukehsiao/CribSense)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg?style=plastic)](https://lukehsiao.github.io/CribSense/)
+[![Waffle.io](https://badge.waffle.io/lukehsiao/CribSense.svg?label=in%20progress&title=In%20Progress)](http://waffle.io/lukehsiao/CribSense)
 
 # Documentation
 
