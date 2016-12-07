@@ -16,7 +16,7 @@ CribSense is relatively simple as far as hardware goes, and is largely made up o
 -   [Flex Cable for Raspberry Pi Camera (12")](https://www.adafruit.com/products/1648)
 -   [\[3x\] 1N4001 diodes](https://www.adafruit.com/product/755)
 -   [1 ohm, 1W resistor](http://www.parts-express.com/10-ohm-1w-flameproof-resistor-10-pcs--003-1)
--   Wires
+-   [2x] 12" Wires with pin headers
 -   Soldering iron
 -   3D printer for chassis
 -   Speakers with 3.5mm input
