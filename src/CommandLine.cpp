@@ -171,7 +171,7 @@ CommandLine::CommandLine(int ac, char *av[])
         amplify = reader.GetReal("magnification", "amplify", 20);
         ok = ok && amplify && amplify >= 0 && amplify <= 100;
 
-        input_fps = reader.GetReal("io", "input_fps", 40);
+        input_fps = reader.GetReal("io", "input_fps", 15);
         if (input_cameraID != -1) {
             // NoIR Camera can only handle 40fps max while retaining good
             // performance in low-light.
