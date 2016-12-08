@@ -10,6 +10,21 @@ This software depends on autoconf, OpenCV and libcanberra. Install these by runn
 sudo apt-get install git build-essential autoconf libopencv-dev libcanberra-dev
 ```
 
+Next you need to set to camera driver to autoload by adding `bcm2835-v4l2` to `/etc/modules-load.d/modules.conf`.
+You file should look like this:
+
+```sh
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+
+i2c-dev
+bcm2835-v4l2
+```
+Once that file has been edited, you must reboot your Pi.
+
+
 ## Build
 
 To build the software, navigate to the root of the repository directory and run
