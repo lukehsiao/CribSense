@@ -7,7 +7,7 @@ This is the step-by-step guide on building the cribsense software on Ubuntu.
 This software depends on autoconf, OpenCV and libcanberra. Install these by running
 
 ```sh
-sudo apt-get install git build-essential autoconf libopencv-dev libcanberra-dev
+sudo apt-get install git build-essential libtool autoconf libopencv-dev libcanberra-dev
 ```
 
 Next you need to set to camera driver to autoload by adding `bcm2835-v4l2` to `/etc/modules-load.d/modules.conf`.
