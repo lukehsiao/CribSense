@@ -1,3 +1,9 @@
+/**
+ * This file is released is under the Patented Algorithm with Software released
+ * Agreement. See LICENSE.md for more information, and view the original repo
+ * at https://github.com/tbl3rd/Pyramids
+ */
+
 #ifndef BUTTERWORTH_H_INCLUDED
 #define BUTTERWORTH_H_INCLUDED
 

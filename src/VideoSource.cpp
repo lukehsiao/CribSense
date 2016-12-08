@@ -1,3 +1,8 @@
+/**
+ * This file is released is under the Patented Algorithm with Software released
+ * Agreement. See LICENSE.md for more information, and view the original repo
+ * at https://github.com/tbl3rd/Pyramids
+ */
 
 #include <exception>
 #include <errno.h>
@@ -250,4 +255,3 @@ VideoSource::read(cv::Mat& into) {
 
     return true;
 }
-

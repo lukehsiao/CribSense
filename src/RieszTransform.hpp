@@ -1,6 +1,12 @@
 #ifndef RIESZ_TRANSFORM_H_INCLUDED
 #define RIESZ_TRANSFORM_H_INCLUDED
 
+/**
+ * This file is released is under the Patented Algorithm with Software released
+ * Agreement. See LICENSE.md for more information, and view the original repo
+ * at https://github.com/tbl3rd/Pyramids
+ */
+
 #include <opencv2/opencv.hpp>
 #include <memory>
 

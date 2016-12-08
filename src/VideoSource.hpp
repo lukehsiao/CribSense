@@ -1,6 +1,12 @@
 #ifndef VIDEO_SOURCE_H_INCLUDED
 #define VIDEO_SOURCE_H_INCLUDED
 
+/**
+ * This file is released is under the Patented Algorithm with Software released
+ * Agreement. See LICENSE.md for more information, and view the original repo
+ * at https://github.com/tbl3rd/Pyramids
+ */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>

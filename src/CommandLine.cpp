@@ -1,9 +1,14 @@
+/**
+ * This file is released is under the Patented Algorithm with Software released
+ * Agreement. See LICENSE.md for more information, and view the original repo
+ * at https://github.com/tbl3rd/Pyramids
+ */
+
 #include "CommandLine.hpp"
 #include "RieszTransform.hpp"
 #include "VideoSource.hpp"
 
 #include <sys/time.h>
-
 
 const char *CommandLine::acknowlegements()
 {
