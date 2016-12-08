@@ -156,11 +156,30 @@ CommandLine::CommandLine(int ac, char *av[])
             ++sourceCount;
         }
 
+        // Validate that input is EITHER camera or file.
+        if (sourceCount > 1) {
+            std::cerr << program << ": Specify only one of --camera or --input."
+                      << std::endl << std::endl;
+            ok = false;
+            return;
+        }
+        if (!(sourceCount)) if (!(about || help)) {
+            std::cerr << program << ": Specify at least 1 input."
+                      << std::endl << std::endl;
+        }
+
         amplify = reader.GetReal("magnification", "amplify", 20);
         ok = ok && amplify && amplify >= 0 && amplify <= 100;
 
-        input_fps = reader.GetReal("io", "input_fps", 60);
-        ok = ok && input_fps && input_fps >= 0;
+        input_fps = reader.GetReal("io", "input_fps", 40);
+        if (input_cameraID != -1) {
+            // NoIR Camera can only handle 40fps max while retaining good
+            // performance in low-light.
+            ok = ok && input_fps && input_fps >= 0 && input_fps <= 40;
+        }
+        else {
+            ok = ok && input_fps && input_fps >= 0;
+        }
 
         full_fps = reader.GetReal("io", "full_fps", 4.5);
         ok = ok && full_fps && full_fps >= 0;
@@ -223,16 +242,6 @@ CommandLine::CommandLine(int ac, char *av[])
         help = reader.GetBoolean("io", "help", false);
     }
 
-    if (sourceCount > 1) {
-        std::cerr << program << ": Specify only one of --camera or --input."
-                  << std::endl << std::endl;
-        ok = false;
-        return;
-    }
-    if (!(sourceCount)) if (!(about || help)) {
-        std::cerr << program << ": Specify at least 1 input."
-                  << std::endl << std::endl;
-    }
     if (about) std::cout << program << acknowlegements() << std::endl;
     if (!ok) showUsage(program, std::cerr);
 }
