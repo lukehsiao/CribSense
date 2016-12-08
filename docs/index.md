@@ -8,6 +8,8 @@ CribSense is a C++ implementation of [Video Magnification](http://people.csail.m
 
 TODO: Picture showing essence of finished project
 
+While we think CribSense is pretty fun, it's important to remember that this isn't actually a certified, foolproof safety device. That is, there will be plenty of times it doesn't work. For example, if it isn't calibrated well and/or the environment in the video isn't conducive to video magnification, you may not be able to use it. We made this just as a fun side project to see how well we could have compute-heavy software like video magnification run on compute-limited hardware like a Raspberry Pi. Any real product would require much more testing than we have done. So, if you use this project, take it for what it is: a short exploration of video magnification on a Pi.
+
 ## Getting Started
 CribSense is made up of two parts: the baby monitoring software and some simple hardware. Find out all you need to know about how to use and recreate your own monitor in the sections below.
 

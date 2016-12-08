@@ -70,7 +70,45 @@ CribSense customizable through a simple INI configuration file. After running `m
 sudo nano /etc/cribsense/config.ini
 ```
 
-View the configuration details on the [Configuration Page](./config.md)
+and it will look like this
+```ini
+[io]                  ; I/O configuration
+; input = vid/noir_cam/lowres_10fps_orange_2min.h264   ; Input file to use
+input_fps = 15          ; fps of input (40 max, 15 recommended if using camera)
+full_fps = 4.5          ; fps at which full frames can be processed
+crop_fps = 15           ; fps at which cropped frames can be processed
+camera = 0              ; Camera to use
+width = 640             ; Width of the input video
+height = 480            ; Height of the input video
+time_to_alarm = 10      ; How many seconds to wait with no motion before alarm.
+
+[cropping]            ; Adaptive Cropping Settings
+crop = true                 ; Whether or not to crop
+frames_to_settle = 10       ; # frames to wait after reset before processing
+roi_update_interval = 800   ; # frame between recalculating ROI
+roi_window = 50             ; # frames to monitor before selecting ROI
+
+[motion]              ; Motion Detection Settings
+erode_dim = 4           ; dimension of the erode kernel
+dilate_dim = 60         ; dimention of the dilate kernel
+diff_threshold = 8      ; abs difference needed before recognizing change
+duration = 1            ; # frames to maintain motion before flagging true
+pixel_threshold = 5     ; # pixels that must be different to flag as motion
+show_diff = false       ; display the diff between 3 frames
+
+[magnification]       ; Video Magnification Settings
+amplify = 25                ; The % amplification desired
+low-cutoff = 0.5            ; The low frequency of the bandpass.
+high-cutoff = 1.0           ; The high frequency of the bandpass.
+threshold = 50              ; The phase threshold as % of pi.
+show_magnification = false  ; Show the output frames of each magnification
+
+[debug]
+print_times = false ; Print analysis times
+
+```
+
+View the full configuration details on the [Configuration Page](./config.md)
 
 ## Software Architecture Details
 
