@@ -8,21 +8,27 @@ CribSense is relatively simple as far as hardware goes, and is largely made up o
 
 ## What you'll need
 
+Raspberry Pi + Camera + configuration tools:
 -   [Raspberry Pi 3 Model B](https://www.amazon.com/Raspberry-Pi-RASP-PI-3-Model-Motherboard/dp/B01CD5VC92/)
 -   [5V 2.5A Micro USB Power Supply](https://www.amazon.com/gp/product/B00MARDJZ4/)
 -   [Raspberry Pi NoIR Camera Module V2](https://www.amazon.com/Raspberry-Pi-NoIR-Camera-Module/dp/B01ER2SMHY)
 -   [1W IR LED](https://www.amazon.com/DIYmall%C2%AE-Infrared-Adjustable-Resistor-Raspberry/dp/B00NUOO1HQ)
 -   [MicroSD Card](https://www.amazon.com/Samsung-Class-Adapter-MB-MP32DA-AM/dp/B00IVPU7KE) (we went with a class 10 16GB card, the faster the card the better)
 -   [Flex Cable for Raspberry Pi Camera (12")](https://www.adafruit.com/products/1648)
--   [\[3x\] 1N4001 diodes](https://www.adafruit.com/product/755)
--   [1 ohm, 1W resistor](http://www.parts-express.com/10-ohm-1w-flameproof-resistor-10-pcs--003-1)
--   [2x] 12" Wires with pin headers
--   Soldering iron
--   3D printer for chassis
 -   Speakers with 3.5mm input
 -   HDMI monitor
 -   Keyboard
 -   Mouse
+
+IR LED Circuit for low-light operation:
+-   [\[3x\] 1N4001 diodes](https://www.adafruit.com/product/755)
+-   [1 ohm, 1W resistor](http://www.parts-express.com/10-ohm-1w-flameproof-resistor-10-pcs--003-1)
+-   [2x] 12" Wires with pin headers
+-   Soldering iron
+
+Chassis:
+-   3D printer for chassis
+
 
 ## Prerequisites
 
