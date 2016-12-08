@@ -2,7 +2,7 @@
 
 CribSense is an video-based, contactless baby monitor that you can make yourself without breaking the bank.
 
-![Cribsense-1](img/chassis-1.jpg)
+![Cribsense-1](img/complete-ports.jpg)
 
 CribSense is a C++ implementation of [Video Magnification](http://people.csail.mit.edu/mrub/vidmag/) tuned to run on a Raspberry Pi 3 Model B. Over a weekend, you can setup your own crib-side baby monitor that raises an alarm if your infant stops moving. As a bonus all of the software is free to use for non-commercial purposes and easily extensible.
 

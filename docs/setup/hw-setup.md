@@ -32,6 +32,8 @@ Before you start our step-by-step guide, you should have already installed the l
 
 ### 3D Printed Chassis
 
+Using our chassis is entirely optional. In fact, we're confident you could make something better. We provide a simple chassis (along with its source files) that we used while developing CribSense as a starting point. This is how we set it up.
+
 TODO: William to fill in instructions about how to use the source files to print out the chassis (or links to good tutorials)
 
 TODO: Build process along with pictures.
@@ -47,7 +49,14 @@ To power the LED from the GPIO header pins on the Pi, we construct the circuit i
 
 In earlier versions of the Pi, the maximum current output of these pins was [50mA](http://pinout.xyz/pinout/pin1_3v3_power). The Raspberry Pi B+ increased this to 500mA. However, for simplicity and backwards compatibility, we just use the 5V power pins, which can supply up to [1.5A](http://pinout.xyz/pinout/pin2_5v_power). The forward voltage of the IR LED is about 1.7~1.9V according to our measurements. Although the IR LED can draw 500mA without damaging itself, we decided to reduce the current to around 200mA to reduce heat and overall power consumption. Experimental result also show that the IR LED is bright enough with this input. To bridge the gap between 5V and 1.9V, we decided to use three 1N4001 diodes and a 1 Ohm resistor in series with the IR LED. The voltage loss on the wire is about 0.2V, over the diodes it's 0.9V (for each one), and over the resistor it's 0.2V. So the voltage over the IR LED is `5V - 0.2V - (3 * 0.9V) - 0.2V = 1.9V`. The heat dissipation over each LED is 0.18W, and is 0.2W over the resistor, all well within the maximum ratings.
 
-The completed circuit is pictured below:
+The circuit should looking something like this:
 
 ![led-zoom](../img/ir-led-zoom.jpg)
 ![led-full](../img/ir-led-full.jpg)
+
+But, we're not done yet! In order to get a better fit into the 3D printed chassis, we want to have the IR LED lens protrude from our chassis and have the board flush with the hold. The small photodiode in the bottom right will get in the way. To remedy this, we desolder it and flip it to the opposite side of the board like this:
+
+![photodiode-side](../img/photodiode-side.jpg)
+![photodiode-front](../img/photodiode-front.jpg)
+
+The photodiode isn't needed since we want the LED to always be on. Simply switching it to the opposite side leaves the original LED circuit unchanged.
