@@ -68,12 +68,20 @@ In earlier versions of the Pi, the maximum current output of these pins was [50m
 
 The circuit should looking something like this:
 
-![led-zoom](../img/ir-led-zoom.jpg)
-![led-full](../img/ir-led-full.jpg)
+<a href="../../img/ir-led-zoom.jpg">
+  <img src="../../img/ir-led-zoom.jpg" alt="zoom" width=300>
+</a>
+<a href="../../img/ir-led-full.jpg">
+  <img src="../../img/ir-led-full.jpg" alt="full" width=300>
+</a>
 
 But, we're not done yet! In order to get a better fit into the 3D printed chassis, we want to have the IR LED lens protrude from our chassis and have the board flush with the hold. The small photodiode in the bottom right will get in the way. To remedy this, we desolder it and flip it to the opposite side of the board like this:
 
-![photodiode-side](../img/photodiode-side.jpg)
-![photodiode-front](../img/photodiode-front.jpg)
+<a href="../../img/photodiode-side.jpg">
+  <img src="../../img/photodiode-side.jpg" alt="side" width=300>
+</a>
+<a href="../../img/photodiode-front.jpg">
+  <img src="../../img/photodiode-front.jpg" alt="front" width=300>
+</a>
 
 The photodiode isn't needed since we want the LED to always be on. Simply switching it to the opposite side leaves the original LED circuit unchanged.
