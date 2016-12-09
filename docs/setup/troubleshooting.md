@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Here are some troubleshooting tips we've noticed while making CribSense.
+Here are some troubleshooting tips we've gathered while making CribSense.
 
 ### No alarm is playing
 
