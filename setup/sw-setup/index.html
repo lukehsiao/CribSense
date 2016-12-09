@@ -68,6 +68,8 @@
                 
                     <li><a class="toctree-l4" href="#build">Build</a></li>
                 
+                    <li><a class="toctree-l4" href="#usage">Usage</a></li>
+                
                     <li><a class="toctree-l4" href="#software-configuration">Software Configuration</a></li>
                 
                     <li><a class="toctree-l4" href="#software-architecture-details">Software Architecture Details</a></li>
@@ -90,6 +92,13 @@
             <li>
     <li class="toctree-l1 ">
         <a class="" href="../config/">Software Configuration Parameters</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../troubleshooting/">Troubleshooting</a>
         
     </li>
 <li>
@@ -134,9 +143,21 @@
 <p>This is the step-by-step guide on building the cribsense software on Ubuntu.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>This software depends on autoconf, OpenCV and libcanberra. Install these by running</p>
-<pre><code class="sh">sudo apt-get install git build-essential autoconf libopencv-dev libcanberra-dev
+<pre><code class="sh">sudo apt-get install git build-essential libtool autoconf libopencv-dev libcanberra-dev
 </code></pre>
 
+<p>Next you need to set to camera driver to autoload by adding <code>bcm2835-v4l2</code> to <code>/etc/modules-load.d/modules.conf</code>.
+You file should look like this:</p>
+<pre><code class="sh"># /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with &quot;#&quot; are ignored.
+
+i2c-dev
+bcm2835-v4l2
+</code></pre>
+
+<p>Once that file has been edited, you must reboot your Pi.</p>
 <h2 id="build">Build</h2>
 <p>To build the software, navigate to the root of the repository directory and run</p>
 <pre><code class="sh">./autogen.sh --prefix=/usr --sysconfdir=/etc --disable-debug
@@ -145,6 +166,7 @@ sudo make install
 sudo systemctl daemon-reload
 </code></pre>
 
+<h2 id="usage">Usage</h2>
 <p>To start the program in the background:</p>
 <pre><code class="sh">sudo systemctl start cribsense
 </code></pre>
@@ -162,12 +184,54 @@ sudo systemctl daemon-reload
 </code></pre>
 
 <p>Note that when <code>cribsense</code> is started using <code>systemctl</code>, the config parameters are already sent and are stored in <code>/etc/systemd/system/cribsense.service</code></p>
+<p>Once you have installed the software and have it configured well for your setting, you will no longer need the keyboard/mouse/monitor. Now, you can set your CribSense to autorun at every boot as shown above.</p>
+<p>Now, all you'll need to do is plug in speakers, attach the CribSense to your previously tested spot on the side of your crib, and plug it in. The software will automatically run after a few moments, and will begin tracking motion. When you're done, well, we don't have an elegant way for you to turn off the Pi yet. But, you can just unplug the speakers and leave it running (and be sure to set the infant in the crib for a couple minutes before plugging them back in). Directly unplugging the Pi may corrupt your SD card.</p>
+<p>Remember that if the environment changes, you'll probably need to reconfigure. You'll want to disable the autorun using the command above, and go through the calibration steps on the <a href="../config/">Configuration Page</a>.</p>
+<p>If something doesn't seem to be working, you can checkout our <a href="../troubleshooting/">Troubleshooting Page</a></p>
+<p>Tip: If everything is set up, you can <a href="https://www.raspberrypi.org/documentation/linux/filesystem/backup.md">make a backup of your Raspberry Pi SD Card</a> for easy restoration if something goes wrong.</p>
 <h2 id="software-configuration">Software Configuration</h2>
 <p>CribSense customizable through a simple INI configuration file. After running <code>make install</code>, the configuration file is located at:</p>
 <pre><code class="sh">sudo nano /etc/cribsense/config.ini
 </code></pre>
 
-<p>View the configuration details on the <a href="../config/">Configuration Page</a></p>
+<p>and it will look like this</p>
+<pre><code class="ini">[io]                  ; I/O configuration
+; input = vid/noir_cam/lowres_10fps_orange_2min.h264   ; Input file to use
+input_fps = 15          ; fps of input (40 max, 15 recommended if using camera)
+full_fps = 4.5          ; fps at which full frames can be processed
+crop_fps = 15           ; fps at which cropped frames can be processed
+camera = 0              ; Camera to use
+width = 640             ; Width of the input video
+height = 480            ; Height of the input video
+time_to_alarm = 10      ; How many seconds to wait with no motion before alarm.
+
+[cropping]            ; Adaptive Cropping Settings
+crop = true                 ; Whether or not to crop
+frames_to_settle = 10       ; # frames to wait after reset before processing
+roi_update_interval = 800   ; # frame between recalculating ROI
+roi_window = 50             ; # frames to monitor before selecting ROI
+
+[motion]              ; Motion Detection Settings
+erode_dim = 4           ; dimension of the erode kernel
+dilate_dim = 60         ; dimention of the dilate kernel
+diff_threshold = 8      ; abs difference needed before recognizing change
+duration = 1            ; # frames to maintain motion before flagging true
+pixel_threshold = 5     ; # pixels that must be different to flag as motion
+show_diff = false       ; display the diff between 3 frames
+
+[magnification]       ; Video Magnification Settings
+amplify = 25                ; The % amplification desired
+low-cutoff = 0.5            ; The low frequency of the bandpass.
+high-cutoff = 1.0           ; The high frequency of the bandpass.
+threshold = 50              ; The phase threshold as % of pi.
+show_magnification = false  ; Show the output frames of each magnification
+
+[debug]
+print_times = false ; Print analysis times
+
+</code></pre>
+
+<p>View the full configuration details on the <a href="../config/">Configuration Page</a></p>
 <h2 id="software-architecture-details">Software Architecture Details</h2>
 <p>The software for processing a video stream is implemented as a state machine that cycles as shown below. There are currently six states that manage all of our processing steps. Our state machine logic is called each time a new frame is read from the camera.</p>
 <p><img alt="fsm" src="../../img/sw-fsm.png" /></p>
