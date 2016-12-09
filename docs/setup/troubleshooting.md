@@ -30,5 +30,5 @@ Here are some troubleshooting tips we've noticed while making CribSense.
 
 ### I can't run `cribsense` from the commandline
 
--   Did you accidentally mistype anything when you ran `./autogen.sh --prefix=/usr --sysconfdir=/etc --disable-debug`?
+-   Did you accidentally mistype anything when you ran `./autogen.sh --prefix=/usr --sysconfdir=/etc --disable-debug` during your software build?
 -   Is `cribsense` present in `/usr/bin/`?

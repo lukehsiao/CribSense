@@ -18,8 +18,8 @@ Raspberry Pi + Camera + configuration tools:
 -   [Flex Cable for Raspberry Pi Camera (12")](https://www.adafruit.com/products/1648)
 -   Speakers with 3.5mm input
 -   HDMI monitor
--   Keyboard
--   Mouse
+-   USB Keyboard
+-   USB Mouse
 -   \[optional] [Raspberry Pi Heatsink](https://www.amazon.com/LoveRPi-Heatsink-Raspberry-Model-Heatsinks/dp/B018BGRDVS/) If you're worried about heat, you can stick these onto your Pi.
 
 IR LED Circuit for low-light operation:

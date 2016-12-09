@@ -11,7 +11,7 @@ sudo apt-get install git build-essential libtool autoconf libopencv-dev libcanbe
 ```
 
 Next you need to set to camera driver to autoload by adding `bcm2835-v4l2` to `/etc/modules-load.d/modules.conf`.
-You file should look like this:
+Your file should look like this:
 
 ```sh
 # /etc/modules: kernel modules to load at boot time.
