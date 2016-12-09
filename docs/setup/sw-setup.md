@@ -71,6 +71,8 @@ Remember that if the environment changes, you'll probably need to reconfigure. Y
 
 If something doesn't seem to be working, you can checkout our [Troubleshooting Page](./troubleshooting.md)
 
+Tip: If everything is set up, you can [make a backup of your Raspberry Pi SD Card](https://www.raspberrypi.org/documentation/linux/filesystem/backup.md) for easy restoration if something goes wrong.
+
 ## Software Configuration
 
 CribSense customizable through a simple INI configuration file. After running `make install`, the configuration file is located at:

@@ -25,8 +25,10 @@ Here are some troubleshooting tips we've noticed while making CribSense.
 -   If you look at `sudo systemctl status cribsense`, is it actually running?
 
 ### CribSense doesn't build
-- Did you [install all of the dependencies](./sw-setup.md)?
+
+-   Did you [install all of the dependencies](./sw-setup.md)?
 
 ### I can't run `cribsense` from the commandline
-- Did you accidentally mistype anything when you ran `./autogen.sh --prefix=/usr --sysconfdir=/etc --disable-debug`?
-- Is `cribsense` present in `/usr/bin/`?
+
+-   Did you accidentally mistype anything when you ran `./autogen.sh --prefix=/usr --sysconfdir=/etc --disable-debug`?
+-   Is `cribsense` present in `/usr/bin/`?
