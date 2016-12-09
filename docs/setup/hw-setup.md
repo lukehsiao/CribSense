@@ -32,6 +32,7 @@ IR LED Circuit for low-light operation:
 Chassis:
 
 -   3D printer for chassis
+-   Hot glue gun + plenty of hot glue
 
 ## Prerequisites
 
@@ -49,11 +50,13 @@ Simply pull the black plastic tab out, remove the short cable, replace it with t
 
 ### 3D Printed Chassis
 
-Using our chassis is entirely optional. In fact, we're confident you could make something better. We provide a simple chassis (along with its source files) that we used while developing CribSense as a starting point. This is how we set it up.
+Using our chassis is entirely optional. In fact, we're confident you could make something better. Two of the biggest weaknesses are:
+
+-   It's hot-glued together, so it's not easy to re-open and change things.
+-   It doesn't have a built-in way to attach to a crib. Some options are 3M mounts, Velcro, or tape.
+    We just provide a simple chassis (along with its source files) that we used while developing CribSense as a starting point. This is how we set it up.
 
 TODO: William to fill in instructions about how to use the source files to print out the chassis (or links to good tutorials)
-
-TODO: Build process along with pictures.
 
 ### IR LED Circuit
 
@@ -85,3 +88,62 @@ But, we're not done yet! In order to get a better fit into the 3D printed chassi
 </a>
 
 The photodiode isn't needed since we want the LED to always be on. Simply switching it to the opposite side leaves the original LED circuit unchanged.
+
+### Assembly: Bring it all together
+
+Once you have all the hardware ready, you can begin assembly. Throughout this process, make sure you give the hot glue enough tie to dry before moving on to the next step. Also, re recommend frequently checking that all the cables still have full access to all the ports, and that everything functions. Also note that anytime during the processes, hot glue is easily removed using isopropyl alcohol (we recommend at least 70% concentration). By soaking the glue (with the Pi powered off and unplugged, of course) with some alcohol, the bond of the glue will be weakened and you'll be able to peel the glue cleanly off. Be sure you let everything dry before reapplying hot glue. Click any of the picture below for larger resolution pictures.
+
+-   Insert the Raspberry Pi into the chassis. Once it is set, be sure that all of the ports still work (e.g. you can plug in power power)
+
+<a href="../../img/pi-chassis.jpg">
+  <img src="../../img/pi-chassis.jpg" alt="front" width=300>
+</a>
+
+-   Next, we used hot glue to tack the Pi into place and attached the camera to the Pi. There are screw holes as well if you perfer to use those.
+
+<a href="../../img/pi-glued.jpg">
+  <img src="../../img/pi-glued.jpg" alt="front" width=200>
+</a>
+
+-   Now, we're going to glue the LED and camera to the front cover
+
+<a href="../../img/chassis-front.jpg">
+  <img src="../../img/chassis-front.jpg" alt="front" width=300>
+</a>
+
+-   We started by hot gluing the NoIR camera to the camera hole. Be sure that the camera is snug and lined up with the chassis. Also, make sure that you don't use too much glue so that you can still fit it onto the make chassis. Be sure to actually power on the Pi and take a look at the camera (`raspistill -v`, for example) to make sure that it is angled well and has a good field of view. If it isn't, remove the hot glue and reposition it.
+
+<a href="../../img/noir-glued.jpg">
+  <img src="../../img/noir-glued.jpg" alt="front" width=200>
+</a>
+
+-   Next, we glued the IR LED to the hole in the next of the Pi. It's at a 45 degree angle because the angle gives us more shadows (and thus more contrast) in low-light, making it easier to see motion.
+
+<a href="../../img/ir-led-glued-zoom.jpg">
+  <img src="../../img/ir-led-glued-zoom.jpg" alt="front" width=300>
+</a>
+
+-   With both of them glued to the neck, it should look like this
+
+<a href="../../img/ir-led-glued-front.jpg">
+  <img src="../../img/ir-led-glued-front.jpg" alt="front" width=300>
+</a>
+<a href="../../img/ir-led-glued-rear.jpg">
+  <img src="../../img/ir-led-glued-rear.jpg" alt="front" width=300>
+</a>
+
+-   Attach the IR LED pins to the Pi's GPIO pins as shown in the LED Schematic figure.
+-   Now, pack in the cables into the chassis in a way that don't crease or strain them. We ended up doing some switchbacks with our extra long camera flex cable.
+
+<a href="../../img/cable-packing.jpg">
+  <img src="../../img/cable-packing.jpg" alt="front" width=300>
+</a>
+
+-   With everything tucked in, we then hot-glued around the edge where the two pieces meet, sealing them in place.
+
+<a href="../../img/complete-standing.jpg">
+  <img src="../../img/complete-standing.jpg" alt="front" width=300>
+</a>
+<a href="../../img/complete-ports.jpg">
+  <img src="../../img/complete-ports.jpg" alt="front" width=300>
+</a>
