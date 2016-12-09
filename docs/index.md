@@ -20,3 +20,12 @@ To install the prerequisites, build the software, or learn more about the softwa
 ### Hardware
 
 To learn more about the hardware materials we used, and how we build our setup, check out the [Hardware Setup Guide](setup/hw-setup.md)
+
+## Video Walkthroughs
+
+### Calibrating CribSense
+<iframe width="560" height="315" src="https://www.youtube.com/embed/zSiRmgIE3pY?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+### CribSense Demonstration
+<iframe width="560" height="315" src="https://www.youtube.com/embed/zvy1fXIjGgA?rel=0" frameborder="0" allowfullscreen></iframe>
