@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Software Configuration Parameters - CribSense Documentation</title>
+  <title>Software Configuration Parameters - CribSense - a contactless, video-based baby monitor</title>
   
 
   <link rel="shortcut icon" href="../../img/favicon.ico">
@@ -38,7 +38,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> CribSense Documentation</a>
+        <a href="../.." class="icon icon-home"> CribSense - a contactless, video-based baby monitor</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -111,7 +111,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">CribSense Documentation</a>
+        <a href="../..">CribSense - a contactless, video-based baby monitor</a>
       </nav>
 
       
@@ -158,6 +158,7 @@ If you change the input, you must also specify the fps parameters to match the i
 <p>Specifically, <code>diff_threshold</code> specifies the amount of change a grayscale pixel (value between 0 and 255) will need to change before being marked as changed. For example, if <code>diff_threshold</code> is 30, the difference between a pixels has to be equal to or more than 30 to be marked changed. The higher this threshold, the more the pixels needs to be different to be marked.</p>
 <p><code>pixel_threshold</code> defines a hard cut of in the number of pixels that need to be marked as changed before outputting motion values. This effectively sets the cutoff for noise when determining whether or not an infant is breathing. For example, if <code>pixel_threshold</code> is set to 100, the algorithm must see more than 100 pixels of change before registering any motion as seen. It will report no motion if that threshold is not crossed.</p>
 <p><code>erode_dim</code> specifies the dimension of the kernel to use in an <a href="http://docs.opencv.org/2.4/doc/tutorials/imgproc/erosion_dilatation/erosion_dilatation.html">OpenCV erode operation</a>. This is used to minimize the changed pixels. That is, pixels that are isolated will be removed, but when large groups of pixels are changed, they will remain. <code>dilate_dim</code> is the opposite, it takes a pixels and expands it. These two parameters are used when detecting the region of the frame that the infant is located in. First, the pixel differences are calculated, then, a small erosion is applied to eliminate noise and a large dilation is applied to broadly mark the areas of motion.</p>
+<p><code>low-cuttoff</code> and <code>high-cutoff</code> define the range of the bandpass filter used during magnification. Specifically, video magnification will try to magnify motion that occurs within this frequency range, and ignore motion outside this range. We've tuned this to be able to capture breathing rats in general, but you may need to tweak this during calibration.</p>
 <p>See the section on calibration for more information.</p>
 <h2 id="debugging-features">Debugging features</h2>
 <p>The <code>show_diff</code> flag in <code>[motion]</code> will show a window where the areas where motion is detected in the frame are highlighted in white. The <code>show_magnification</code> flag in <code>[magnification]</code> controls a window that shows the output of just video magnification (which should look like the camera feed, in black and white, which enlarged motion).
@@ -168,7 +169,7 @@ You can use this two flags to show the result of your changes to the motion and 
 <p>Calibration of the algorithm is an iterative effort, with no right or wrong answer. We encourage you to experiment with various values, combining them with the debugging features, to find the combination of parameters most suitable to your environment.</p>
 <p>As a guideline, increasing the <code>amplification</code> and the <code>phase_threshold</code> values increases the amount of magnification applied to the input video. You should change these values until you clearly see the movement from your baby breathing, and no significant artifact in other areas of the video. If you experience artifacts, reducing the <code>phase_threshold</code> while keeping the same <code>amplification</code> might help. You can view the effects of these parameters by setting <code>show_magnification</code> to <code>true</code>.</p>
 <p>As for the motion detection parameters, the main driver is the amount of noise. When detecting regions of motion to crop to, <code>erode_dim</code> and <code>dilate_dim</code> are used to size the dimensions of the OpenCV kernels used to <a href="http://docs.opencv.org/2.4/doc/tutorials/imgproc/erosion_dilatation/erosion_dilatation.html">erode and dilate</a> motion so that noise is first eroded away, then the remaining motion signal is significantly dilated to make the regions of motion obvious. These parameters may also need to be tuned if your crib is in a very high-contrast setting. In general, you will need a higher <code>erode_dim</code> for high contrast settings, and a lower <code>erode_dim</code> for low contrast.</p>
-<p>If you run with <code>show_diff</code> enabled and you notice that too much of the input video is white, or some completely unrelated part of the video is detected as motion (e.g. a flickering lamp), you'll want to increase the <code>erode_dim</code> until only the part of the video corresponding to your breathing baby is the largest section of white. The top figure shows an example where the erode dimension is too low for the amount of motion in the frame, while the bottom one shows a correctly calibrated frame.</p>
+<p>If you run with <code>show_diff = true</code> and you notice that too much of the input video is white, or some completely unrelated part of the video is detected as motion (e.g. a flickering lamp), you'll want to increase the <code>erode_dim</code> until only the part of the video corresponding to your breathing baby is the largest section of white. The top figure shows an example where the erode dimension is too low for the amount of motion in the frame, while the bottom one shows a correctly calibrated frame.</p>
 <p><img alt="too-much" src="../../img/too-much-motion.png" /></p>
 <p><img alt="motion" src="../../img/motion.png" /></p>
 <p>Once this has been calibrated, you'll want to make sure that the <code>pixel_threshold</code> is set so that motion is only reported when you expect, and not constantly (which means you need to cut out the noise). Ideally, you'll see output like this in your terminal:</p>
@@ -216,7 +217,7 @@ You can use this two flags to show the result of your changes to the motion and 
 [info] Pixel Movement: 0     [info] Motion Estimate: 0.839298 Hz
 </code></pre>
 
-<p>Where there is a clear periodic pattern corresponding to the breathing.</p>
+<p>Where there is a clear periodic pattern corresponding to the motion.</p>
 <p>If your output looks more like this:</p>
 <pre><code>[info] Pixel Movement: 921   [info] Motion Estimate: 1.352046 Hz
 [info] Pixel Movement: 736   [info] Motion Estimate: 1.352046 Hz

@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Software Setup Instructions - CribSense Documentation</title>
+  <title>Software Setup Instructions - CribSense - a contactless, video-based baby monitor</title>
   
 
   <link rel="shortcut icon" href="../../img/favicon.ico">
@@ -38,7 +38,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> CribSense Documentation</a>
+        <a href="../.." class="icon icon-home"> CribSense - a contactless, video-based baby monitor</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -113,7 +113,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">CribSense Documentation</a>
+        <a href="../..">CribSense - a contactless, video-based baby monitor</a>
       </nav>
 
       
@@ -233,6 +233,7 @@ print_times = false ; Print analysis times
 
 <p>View the full configuration details on the <a href="../config/">Configuration Page</a></p>
 <h2 id="software-architecture-details">Software Architecture Details</h2>
+<p>The CribSense is the heart and soul of this project. The rest is mainly a fun opportunity to use a 3D printer and do some soldering. We saw some of the great demos of video magnification from MIT, and wanted to try and run a similar algorithm on a Raspberry Pi. This required about 10x speedup from the great work of tbl3rd on his C++ implementation of video magnification in order to run in real-time on the Pi. The optimizations needed guided our design of the software.</p>
 <p>The software for processing a video stream is implemented as a state machine that cycles as shown below. There are currently six states that manage all of our processing steps. Our state machine logic is called each time a new frame is read from the camera.</p>
 <p><img alt="fsm" src="../../img/sw-fsm.png" /></p>
 <h3 id="initialization">Initialization</h3>
