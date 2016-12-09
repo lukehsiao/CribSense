@@ -36,6 +36,13 @@ Before you start our step-by-step guide, you should have already installed the l
 
 ## Build Instructions
 
+### Swap NoIR Camera Cable
+The cable that comes with the camera is much too short. That's why you bought the longer one. Swap the short one with the long one. To do this, you can follow [this guide from ModMyPi](https://www.modmypi.com/blog/how-to-replace-the-raspberry-pi-camera-cable). It you don't feel like clicking through, it's simple. On the back of the NoIR Camera, there is a push/pull tab just like the one found on the Pi itself:
+
+![noir-rear](../img/noir-rear.jpg)
+
+Simply pull the black plastic tab out, remove the short cable, replace it with the long cable (making sure that the blue plastic strip is facing up still as shown in the picture), and push the tab back in to secure it.
+
 ### 3D Printed Chassis
 
 Using our chassis is entirely optional. In fact, we're confident you could make something better. We provide a simple chassis (along with its source files) that we used while developing CribSense as a starting point. This is how we set it up.
