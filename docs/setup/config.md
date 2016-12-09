@@ -38,6 +38,8 @@ Specifically, `diff_threshold` specifies the amount of change a grayscale pixel 
 
 `erode_dim` specifies the dimension of the kernel to use in an [OpenCV erode operation](http://docs.opencv.org/2.4/doc/tutorials/imgproc/erosion_dilatation/erosion_dilatation.html). This is used to minimize the changed pixels. That is, pixels that are isolated will be removed, but when large groups of pixels are changed, they will remain. `dilate_dim` is the opposite, it takes a pixels and expands it. These two parameters are used when detecting the region of the frame that the infant is located in. First, the pixel differences are calculated, then, a small erosion is applied to eliminate noise and a large dilation is applied to broadly mark the areas of motion.
 
+`low-cuttoff` and `high-cutoff` define the range of the bandpass filter used during magnification. Specifically, video magnification will try to magnify motion that occurs within this frequency range, and ignore motion outside this range. We've tuned this to be able to capture breathing rats in general, but you may need to tweak this during calibration.
+
 See the section on calibration for more information.
 
 ## Debugging features
@@ -57,7 +59,7 @@ As a guideline, increasing the `amplification` and the `phase_threshold` values 
 
 As for the motion detection parameters, the main driver is the amount of noise. When detecting regions of motion to crop to, `erode_dim` and `dilate_dim` are used to size the dimensions of the OpenCV kernels used to [erode and dilate](http://docs.opencv.org/2.4/doc/tutorials/imgproc/erosion_dilatation/erosion_dilatation.html) motion so that noise is first eroded away, then the remaining motion signal is significantly dilated to make the regions of motion obvious. These parameters may also need to be tuned if your crib is in a very high-contrast setting. In general, you will need a higher `erode_dim` for high contrast settings, and a lower `erode_dim` for low contrast.
 
-If you run with `show_diff` enabled and you notice that too much of the input video is white, or some completely unrelated part of the video is detected as motion (e.g. a flickering lamp), you'll want to increase the `erode_dim` until only the part of the video corresponding to your breathing baby is the largest section of white. The top figure shows an example where the erode dimension is too low for the amount of motion in the frame, while the bottom one shows a correctly calibrated frame.
+If you run with `show_diff = true` and you notice that too much of the input video is white, or some completely unrelated part of the video is detected as motion (e.g. a flickering lamp), you'll want to increase the `erode_dim` until only the part of the video corresponding to your breathing baby is the largest section of white. The top figure shows an example where the erode dimension is too low for the amount of motion in the frame, while the bottom one shows a correctly calibrated frame.
 
 ![too-much](../img/too-much-motion.png)
 
@@ -109,7 +111,7 @@ Once this has been calibrated, you'll want to make sure that the `pixel_threshol
 [info] Pixel Movement: 0	 [info] Motion Estimate: 0.839298 Hz
 [info] Pixel Movement: 0	 [info] Motion Estimate: 0.839298 Hz
 ```
-Where there is a clear periodic pattern corresponding to the breathing.
+Where there is a clear periodic pattern corresponding to the motion.
 
 If your output looks more like this:
 
