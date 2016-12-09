@@ -5,4 +5,5 @@ pages:
 - Software Setup Instructions: 'setup/sw-setup.md'
 - Hardware Setup Instructions: 'setup/hw-setup.md'
 - Software Configuration Parameters: 'setup/config.md'
+- Troubleshooting: 'setup/troubleshooting.md'
 theme: readthedocs

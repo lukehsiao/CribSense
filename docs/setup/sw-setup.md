@@ -35,6 +35,7 @@ make
 sudo make install
 sudo systemctl daemon-reload
 ```
+## Usage
 
 To start the program in the background:
 
@@ -61,6 +62,14 @@ sudo systemctl disable cribsense
 ```
 
 Note that when `cribsense` is started using `systemctl`, the config parameters are already sent and are stored in `/etc/systemd/system/cribsense.service`
+
+Once you have installed the software and have it configured well for your setting, you will no longer need the keyboard/mouse/monitor. Now, you can set your CribSense to autorun at every boot as shown above.
+
+Now, all you'll need to do is plug in speakers, attach the CribSense to your previously tested spot on the side of your crib, and plug it in. The software will automatically run after a few moments, and will begin tracking motion. When you're done, well, we don't have an elegant way for you to turn off the Pi yet. But, you can just unplug the speakers and leave it running (and be sure to set the infant in the crib for a couple minutes before plugging them back in). Directly unplugging the Pi may corrupt your SD card.
+
+Remember that if the environment changes, you'll probably need to reconfigure. You'll want to disable the autorun using the command above, and go through the calibration steps on the [Configuration Page](./config.md).
+
+If something doesn't seem to be working, you can checkout our [Troubleshooting Page](./troubleshooting.md)
 
 ## Software Configuration
 

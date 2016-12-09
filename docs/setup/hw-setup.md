@@ -9,6 +9,7 @@ CribSense is relatively simple as far as hardware goes, and is largely made up o
 ## What you'll need
 
 Raspberry Pi + Camera + configuration tools:
+
 -   [Raspberry Pi 3 Model B](https://www.amazon.com/Raspberry-Pi-RASP-PI-3-Model-Motherboard/dp/B01CD5VC92/)
 -   [5V 2.5A Micro USB Power Supply](https://www.amazon.com/gp/product/B00MARDJZ4/)
 -   [Raspberry Pi NoIR Camera Module V2](https://www.amazon.com/Raspberry-Pi-NoIR-Camera-Module/dp/B01ER2SMHY)
@@ -19,16 +20,18 @@ Raspberry Pi + Camera + configuration tools:
 -   HDMI monitor
 -   Keyboard
 -   Mouse
+-   \[optional] [Raspberry Pi Heatsink](https://www.amazon.com/LoveRPi-Heatsink-Raspberry-Model-Heatsinks/dp/B018BGRDVS/) If you're worried about heat, you can stick these onto your Pi.
 
 IR LED Circuit for low-light operation:
+
 -   [\[3x\] 1N4001 diodes](https://www.adafruit.com/product/755)
 -   [1 ohm, 1W resistor](http://www.parts-express.com/10-ohm-1w-flameproof-resistor-10-pcs--003-1)
 -   [2x] 12" Wires with pin headers
 -   Soldering iron
 
 Chassis:
--   3D printer for chassis
 
+-   3D printer for chassis
 
 ## Prerequisites
 
@@ -37,6 +40,7 @@ Before you start our step-by-step guide, you should have already installed the l
 ## Build Instructions
 
 ### Swap NoIR Camera Cable
+
 The cable that comes with the camera is much too short. That's why you bought the longer one. Swap the short one with the long one. To do this, you can follow [this guide from ModMyPi](https://www.modmypi.com/blog/how-to-replace-the-raspberry-pi-camera-cable). It you don't feel like clicking through, it's simple. On the back of the NoIR Camera, there is a push/pull tab just like the one found on the Pi itself:
 
 ![noir-rear](../img/noir-rear.jpg)
