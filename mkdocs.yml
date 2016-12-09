@@ -1,4 +1,4 @@
-site_name: CribSense Documentation
+site_name: CribSense - a contactless, video-based baby monitor
 repo_url: https://github.com/lukehsiao/CribSense
 pages:
 - Home: 'index.md'

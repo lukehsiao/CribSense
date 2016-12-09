@@ -122,6 +122,7 @@ print_times = false ; Print analysis times
 View the full configuration details on the [Configuration Page](./config.md)
 
 ## Software Architecture Details
+The CribSense is the heart and soul of this project. The rest is mainly a fun opportunity to use a 3D printer and do some soldering. We saw some of the great demos of video magnification from MIT, and wanted to try and run a similar algorithm on a Raspberry Pi. This required about 10x speedup from the great work of tbl3rd on his C++ implementation of video magnification in order to run in real-time on the Pi. The optimizations needed guided our design of the software.
 
 The software for processing a video stream is implemented as a state machine that cycles as shown below. There are currently six states that manage all of our processing steps. Our state machine logic is called each time a new frame is read from the camera.
 

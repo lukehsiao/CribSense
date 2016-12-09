@@ -16,6 +16,7 @@ Here are some troubleshooting tips we've gathered while making CribSense.
     -   Is there a moving shadow within the frame?
     -   Is there flickering or changing lighting?
     -   Is CribSense mounted to a stable surface (e.g. something that won't shake if people are walking by it)?
+    -   Is there any other sources of movement in the frame (mirrors catching reflections, etc)?
 
 ### CribSense is NOT detecting motion even though there is motion
 
@@ -26,6 +27,7 @@ Here are some troubleshooting tips we've gathered while making CribSense.
 -   Is your infant under a blanket that is "tented" up so that it is not making contact with the child? If there is significant gaps between the blanket and the child, this might mask the motion.
 -   Can you see the motion if you apmplify the video more?
 -   Can you see the video of you tune the low and high frequency cutoffs?
+-   If this is happening in low-light, did you make sure your calibration works in low-light?
 
 ### CribSense doesn't build
 
