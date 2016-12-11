@@ -2,7 +2,7 @@
 
 ![hw-blocks](../img/hw-blocks.png)
 
-**Figure TODO: Hardware Block Diagram**
+**Figure 1: Hardware Block Diagram**
 
 CribSense is relatively easy to construct, and is largely made up of commercially available parts. As seen in Figure TODO, there are 5 main hardware components, only 2 of which are custom made. This page contains the build instructions for CribSense.
 
@@ -50,6 +50,10 @@ Simply pull the black plastic tab out, remove the short cable, replace it with t
 
 ### 3D Printed Chassis
 
+<a href="../../img/render-2.jpg">
+  <img src="../../img/render-2.jpg" alt="Render 2" width=400>
+</a>
+
 Using our chassis is optional, though recommended to prevent young children from touching exposed electronic circuitry. Every crib is different, so our chassis does not include include a mounting bracket. Several mounting options could include:
 
 -   [Cable Ties](https://www.amazon.com/Miady-Pieces-Self-Locking-Nylon-Inches/dp/B01M0IL0GO/)
@@ -57,9 +61,6 @@ Using our chassis is optional, though recommended to prevent young children from
 -   [Velcro](https://www.amazon.com/VELCRO-Brand-Industrial-Strength-Black/dp/B00006RSP1/)
 -   Tape
 
-In any case, please be sure that CribSense is securely mounted to the crib before proceeding.
-
-![render-2](../img/render-2.jpg)
 
 If you have access to a MakerBot Replicator (5th Generation), you can simply download the .makerbot files for the [case](../../chassis/case.makerbot) and [cover](../../chassis/cover.makerbot) onto your MakerBot Replicator and print. It takes about 6 hours to print the case and 3 hours to print the cover. If you are using a different type of 3D printer, please keep reading.
 
@@ -69,20 +70,20 @@ Orienting the model on your printer's build plate is critical for a successful p
 
 Case:
 
-<a href="../img/print-case-iso.png">
-  <img src="../img/print-case-iso.png" alt="Case (Isometric View)" width=369>
+<a href="../../img/print-case-iso.png">
+  <img src="../../img/print-case-iso.png" alt="Case (Isometric View)" width=300>
 </a>
-<a href="../img/print-case-top.png">
-  <img src="../img/print-case-top" alt="Case (Top View)" width=381>
+<a href="../../img/print-case-top.png">
+  <img src="../../img/print-case-top.png" alt="Case (Top View)" width=310>
 </a>
 
 Cover:
 
-<a href="../img/print-cover-iso.png">
-  <img src="../img/print-cover-iso.png" alt="Cover (Isometric View)" width=369>
+<a href="../../img/print-cover-iso.png">
+  <img src="../../img/print-cover-iso.png" alt="Cover (Isometric View)" width=300>
 </a>
-<a href="../img/print-cover-top.png">
-  <img src="../img/print-cover-top" alt="Cover (Top View)" width=381>
+<a href="../../img/print-cover-top.png">
+  <img src="../../img/print-cover-top.png" alt="Cover (Top View)" width=310>
 </a>
 
 In addition to putting the neck of CribSense flat against the build plate, you may notice that the models are rotated around the vertical axis. This may be necessary to fit the model inside the build volume of your 3D printer. This rotation is optional if the length of your build volume is long enough to accommodate CribSense.
@@ -130,7 +131,7 @@ The assembly instructions below assume that you are using hot glue. If you are u
   <img src="../../img/pi-chassis.jpg" alt="front" width=300>
 </a>
 
--   Next, use hot glue to tack the Pi into place and attach the camera to the Pi. There are screw holes as well if you perfer to use those.
+-   Next, use hot glue to tack the Pi into place and attach the camera to the Pi. There are screw holes as well if you prefer to use those.
 
 <a href="../../img/pi-glued.jpg">
   <img src="../../img/pi-glued.jpg" alt="front" width=200>
