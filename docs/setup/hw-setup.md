@@ -2,9 +2,9 @@
 
 ![hw-blocks](../img/hw-blocks.png)
 
-**Figure 1: Hardware Block Diagram**
+**Figure: Hardware Block Diagram**
 
-CribSense is relatively easy to construct, and is largely made up of commercially available parts. As seen in Figure TODO, there are 5 main hardware components, only 2 of which are custom made. This page contains the build instructions for CribSense.
+CribSense is relatively easy to construct, and is largely made up of commercially available parts. As seen in the figure above, there are 5 main hardware components, only 2 of which are custom made. This page contains the build instructions for CribSense.
 
 ## What you'll need
 
@@ -92,10 +92,10 @@ In addition to putting the neck of CribSense flat against the build plate, you m
 
 In order to provide adequate lighting at night, we use an IR LED, which is not visible to the human eye but visible to the NoIR camera. The IR LED does not consume a lot of power compared to the Raspberry Pi, so we leave the IR LED on for the sake of simplicity.
 
-To power the LED from the GPIO header pins on the Pi, we construct the circuit in Figure TODO.
+To power the LED from the GPIO header pins on the Pi, we construct the circuit in the figure below.
 
 ![led](../img/led-schematic.png)
-**Figure TODO: LED Schematic**
+**Figure: LED Schematic**
 
 In earlier versions of the Pi, the maximum output current of these pins was [50mA](http://pinout.xyz/pinout/pin1_3v3_power). The Raspberry Pi B+ increased this to 500mA. However, for simplicity sake and backwards compatibility, we use the 5V power pins, which can supply up to [1.5A](http://pinout.xyz/pinout/pin2_5v_power). The forward voltage of the IR LED is about 1.7~1.9V according to our measurements. Even though the IR LED has a maximum current of 500mA, we decided to reduce the current to around 200mA to reduce heat and overall power consumption. Experimental results also show that the IR LED is bright enough with 200 mA of input current. To bridge the gap between 5V and 1.9V, we decided to use three 1N4001 diodes and a 1 Ohm resistor in series with the IR LED. The voltage drop over the wire, diodes and resistor is about 0.2V, 0.9V (for each one) and 0.2V, respectively. Thus, the voltage over the IR LED is `5V - 0.2V - (3 * 0.9V) - 0.2V = 1.9V`. The heat dissipation over each LED is 0.18W, and is 0.2W over the resistor, all well within the maximum ratings.
 
