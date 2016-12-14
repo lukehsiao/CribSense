@@ -199,7 +199,7 @@ Click any of the pictures below for higher resolution images.
   <img src="../../img/noir-glued.jpg" alt="front" width=200>
 </a>
 
--   Next, glue the IR LED to the hole on the neck of the cover. It's at a 45 degree angle to side light the crib, which results in more shadodws in low-light situations. This adds more contrast to the image, making it easier to detect motion.
+-   Next, glue the IR LED to the hole on the neck of the cover. It's at a 45 degree angle to side light the crib, which results in more shadows in low-light situations. This adds more contrast to the image, making it easier to detect motion.
 
 <a href="../../img/ir-led-glued-zoom.jpg">
   <img src="../../img/ir-led-glued-zoom.jpg" alt="front" width=300>
