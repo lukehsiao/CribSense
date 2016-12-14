@@ -4,10 +4,10 @@ Here are some troubleshooting tips we've gathered while making CribSense.
 
 ### No alarm is playing
 
--   Have you make sure the speakers work?
+-   Are your speakers working?
 -   Can you play other sounds from the Pi outside of the CribSense alarm?
--   Is your Pi trying to play audio through HDMI rather than the audio port? Check the [Raspberry Pi Audio Configuration](https://www.raspberrypi.org/documentation/configuration/audio-config.md) page to make sure you have the right output.
--   Is CribSense detecting motion? Check with `journalctl -f` if CribSense is running the the background. If it is, perhaps you need to [calibrate CribSense](./config.md)
+-   Is your Pi trying to play audio through HDMI rather than the audio port? Check the [Raspberry Pi Audio Configuration](https://www.raspberrypi.org/documentation/configuration/audio-config.md) page to make sure that you have selected the right output.
+-   Is CribSense detecting motion? Check with `journalctl -f` to see if CribSense is running in the background. If it is, perhaps you need to [calibrate CribSense](./config.md)
 
 ### CribSense is detecting motion even though there isn't an infant
 
@@ -25,9 +25,9 @@ Here are some troubleshooting tips we've gathered while making CribSense.
 -   Are you able to connect to the camera from the Raspberry Pi at all? Check by running `raspistill -v` in a terminal to open the camera on the Pi for a few seconds.
 -   If you look at `sudo systemctl status cribsense`, is it actually running?
 -   Is your infant under a blanket that is "tented" up so that it is not making contact with the child? If there is significant gaps between the blanket and the child, this might mask the motion.
--   Can you see the motion if you apmplify the video more?
--   Can you see the video of you tune the low and high frequency cutoffs?
--   If this is happening in low-light, did you make sure your calibration works in low-light?
+-   Can you see the motion if you amplify the video more?
+-   Can you see the motion if you tune the low and high frequency cutoffs?
+-   If this is happening in low-light only, did you make sure your calibration works in low-light?
 
 ### CribSense doesn't build
 
