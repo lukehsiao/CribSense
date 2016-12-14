@@ -15,7 +15,7 @@ While we think that CribSense is pretty fun, it is important to remember that th
 
 ## Getting Started
 
-CribSense is made up of two parts: the baby monitoring software and some simple hardware. Find out all you need to know about how to use and recreate your own monitor in the sections below.
+CribSense is made up of two parts: the baby monitoring software and some simple hardware. Find out all you need to know about how to use and recreate your own monitor in the sections below. You can also view our instructions on [Instructables](http://www.instructables.com/id/CribSense-a-Contactless-Video-based-Baby-Monitor/).
 
 ### Software
 
