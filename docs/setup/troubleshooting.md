@@ -9,6 +9,12 @@ Here are some troubleshooting tips we've gathered while making CribSense.
 -   Is your Pi trying to play audio through HDMI rather than the audio port? Check the [Raspberry Pi Audio Configuration](https://www.raspberrypi.org/documentation/configuration/audio-config.md) page to make sure that you have selected the right output.
 -   Is CribSense detecting motion? Check with `journalctl -f` to see if CribSense is running in the background. If it is, perhaps you need to [calibrate CribSense](./config.md)
 
+### IR LED is not working
+
+- Can you see any red color from IR LED? You should be able to see it when the LED is powered on.
+- Check the polarity of connection. Reverse +5V and GND won't work.
+- Connect the LED to a power supply with 5V/0.5A voltage/current limit. Normally it should consumes 0.2A at 5V.
+
 ### CribSense is detecting motion even though there isn't an infant
 
 -   Have you properly [configured CribSense](./config.md)?
