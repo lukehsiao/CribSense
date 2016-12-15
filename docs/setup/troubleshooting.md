@@ -12,8 +12,8 @@ Here are some troubleshooting tips we've gathered while making CribSense.
 ### IR LED is not working
 
 - Can you see any red color from IR LED? You should be able to see it when the LED is powered on.
-- Check the polarity of connection. Reverse +5V and GND won't work.
-- Connect the LED to a power supply with 5V/0.5A voltage/current limit. Normally it should consumes 0.2A at 5V.
+- Check the polarity of connection. If +5V and GND are reversed, it won't work.
+- Connect the LED to a power supply with 5V/0.5A voltage/current limit. Normally it should consumes 0.2A at 5V. If it does not, you LED may be malfunctioning.
 
 ### CribSense is detecting motion even though there isn't an infant
 
