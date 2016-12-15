@@ -30,7 +30,7 @@ Here are some troubleshooting tips we've gathered while making CribSense.
 -   Is there anything in the way of the camera?
 -   Are you able to connect to the camera from the Raspberry Pi at all? Check by running `raspistill -v` in a terminal to open the camera on the Pi for a few seconds.
 -   If you look at `sudo systemctl status cribsense`, is it actually running?
--   Is your infant under a blanket that is "tented" up so that it is not making contact with the child? If there is significant gaps between the blanket and the child, this might mask the motion.
+-   Is your infant under a blanket that is "tented" up so that it is not making contact with the child? If there are significant air gaps between the blanket and the child, the blanket may mask the motion.
 -   Can you see the motion if you amplify the video more?
 -   Can you see the motion if you tune the low and high frequency cutoffs?
 -   If this is happening in low-light only, did you make sure your calibration works in low-light?
