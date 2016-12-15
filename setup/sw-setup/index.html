@@ -210,12 +210,12 @@ time_to_alarm = 10      ; How many seconds to wait with no motion before alarm.
 [cropping]            ; Adaptive Cropping Settings
 crop = true                 ; Whether or not to crop
 frames_to_settle = 10       ; # frames to wait after reset before processing
-roi_update_interval = 800   ; # frame between recalculating ROI
+roi_update_interval = 800   ; # frames between recalculating ROI
 roi_window = 50             ; # frames to monitor before selecting ROI
 
 [motion]              ; Motion Detection Settings
 erode_dim = 4           ; dimension of the erode kernel
-dilate_dim = 60         ; dimention of the dilate kernel
+dilate_dim = 60         ; dimension of the dilate kernel
 diff_threshold = 8      ; abs difference needed before recognizing change
 duration = 1            ; # frames to maintain motion before flagging true
 pixel_threshold = 5     ; # pixels that must be different to flag as motion
