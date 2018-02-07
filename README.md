@@ -1,6 +1,8 @@
 # CribSense: <small>a contactless, video-based baby monitor</small>
 
-[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg?style=plastic)](https://lukehsiao.github.io/CribSense/)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-lightgrey.svg?style=flat)](https://lukehsiao.github.io/CribSense/)
+[![GitHub issues](https://img.shields.io/github/issues/lukehsiao/CribSense.svg)](https://github.com/lukehsiao/CribSense/issues)
+[![GitHub stars](https://img.shields.io/github/stars/lukehsiao/CribSense.svg)](https://github.com/lukehsiao/CribSense/stargazers)
 
 # Documentation
 
